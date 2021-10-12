@@ -1,5 +1,5 @@
 /// A module for generating globally unique identifiers
-module 0x1::GUID {
+module Std::GUID {
     use Std::BCS;
     use Std::Signer;
     use Std::Vector;
@@ -87,6 +87,7 @@ module 0x1::GUID {
         &guid.id == id
     }
 
+    /// Return the number of the next GUID to be created by `addr`
     public fun get_next_creation_num(addr: address): u64 acquires Generator {
         if (!exists<Generator>(addr)) {
             0

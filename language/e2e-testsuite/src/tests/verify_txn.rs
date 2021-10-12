@@ -1650,7 +1650,7 @@ pub fn publish_and_register_new_currency() {
             ),
         )
         .gas_unit_price(1)
-        .max_gas_amount(800)
+        .max_gas_amount(8000)
         .gas_currency_code("COIN")
         .sequence_number(0)
         .sign();
