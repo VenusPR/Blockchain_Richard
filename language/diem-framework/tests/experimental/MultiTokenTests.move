@@ -3,6 +3,7 @@ module 0x1::MultiTokenTests {
     use Std::GUID;
     use 0x1::MultiToken;
     use 0x1::MultiTokenBalance;
+    use Std::Option;
 
     /// A test token type to instantiate generic Tokens with.
     struct Game has store {
@@ -10,8 +11,18 @@ module 0x1::MultiTokenTests {
         edition: u64,
     }
 
+    struct Collection has store {
+        name: vector<u8>,
+    }
+
+    struct Pokemon has store {
+        name: vector<u8>,
+        type: vector<u8>,
+    }
+
     const EMINT_FAILED: u64 = 0;
     const ETRANSFER_FAILED: u64 = 1;
+    const ECOLLECTION_FAILED: u64 = 2;
 
     #[test(admin=@0xa550c18, creator=@0x42, user=@0x43)]
     public(script) fun test_all(admin: signer, creator: signer, user: signer) {
@@ -41,7 +52,8 @@ module 0x1::MultiTokenTests {
             &creator,
             Game { name: b"Mario", edition: 2008 },
             b"nintendo.com",
-            10
+            10,
+            Option::none(),
         );
         // Add all 10 tokens to creator's own account
         MultiTokenBalance::add_to_gallery<Game>(creator_addr, token1);
@@ -55,13 +67,49 @@ module 0x1::MultiTokenTests {
             &creator,
             Game { name: b"ChromeDino", edition: 2015 },
             b"google.com",
-            233
+            233,
+            Option::none(),
         );
         MultiTokenBalance::add_to_gallery<Game>(creator_addr, token2);
         assert(MultiTokenBalance::has_token<Game>(creator_addr, &token2_id), EMINT_FAILED);
         assert(MultiTokenBalance::get_token_balance<Game>(creator_addr, &token2_id) == 233, EMINT_FAILED);
 
+        /*
+        ===============================================================
+            Test collections
+        ===============================================================
+        */
 
+        // Create collection first
+        let collection = MultiToken::create<Collection>(
+            &creator,
+            Collection { name: b"Pokemon" },
+            b"nintendo.com",
+            1,
+            Option::none(),
+        );
+
+        let pikachu = MultiToken::create<Pokemon>(
+            &creator,
+            Pokemon { name: b"Pikachu", type: b"electric", },
+            b"nintendo.com",
+            10,
+            Option::some(MultiToken::id(&collection)),
+        );
+        let charmander = MultiToken::create<Pokemon>(
+            &creator,
+            Pokemon { name: b"Charmander", type: b"fire", },
+            b"nintendo.com",
+            10,
+            Option::some(MultiToken::id(&collection)),
+        );
+        let pikachu_token = MultiToken::extract_token<Pokemon>(&pikachu);
+        assert(MultiToken::parent(&pikachu_token) == &Option::some(MultiToken::id(&collection)), ECOLLECTION_FAILED);
+        MultiToken::restore_token(pikachu_token);
+
+        let charmander_token = MultiToken::extract_token<Pokemon>(&charmander);
+        assert(MultiToken::parent(&charmander_token) == &Option::some(MultiToken::id(&collection)), ECOLLECTION_FAILED);
+        MultiToken::restore_token(charmander_token);
 
         /*
         ===============================================================
