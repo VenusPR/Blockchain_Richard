@@ -36,7 +36,7 @@ module MultiToken {
     /// There can be multiple tokens with the same id (unless supply is 1). Each token's
     /// corresponding token metadata is stored inside a MultiTokenData inside TokenDataCollection
     /// under the creator's address.
-    struct Token<phantom TokenType: store> has drop, key, store {
+    struct Token<phantom TokenType: store> has key, store {
         id: GUID::ID,
         balance: u64,
     }
@@ -68,6 +68,7 @@ module MultiToken {
     const EINDEX_EXCEEDS_LENGTH: u64 = 5;
     const ETOKEN_PRESENT: u64 = 6;
     const EPARENT_NOT_SAME_ACCOUNT: u64 = 7;
+    const ETOKEN_DATA_COLLECTION_ALREADY_PUBLISHED: u64 = 8;
 
     /// Returns the id of given token
     public fun id<TokenType: store>(token: &Token<TokenType>): GUID::ID {
@@ -194,6 +195,14 @@ module MultiToken {
             TokenData { metadata: Option::some(metadata), token_id: guid, content_uri, supply: amount, parent_id }
         );
         Token { id, balance: amount }
+    }
+
+    public fun publish_token_data_collection<TokenType: store>(account: &signer) {
+        assert(
+            !exists<TokenDataCollection<TokenType>>(Signer::address_of(account)),
+            ETOKEN_DATA_COLLECTION_ALREADY_PUBLISHED
+        );
+        move_to(account, TokenDataCollection<TokenType> { tokens: Vector::empty() });
     }
 }
 }

@@ -8835,6 +8835,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "trove-hackathon-demo"
+version = "0.1.0"
+dependencies = [
+ "abigen",
+ "anyhow",
+ "bcs",
+ "diem-config",
+ "diem-crypto",
+ "diem-genesis-tool",
+ "diem-json-rpc-types",
+ "diem-node",
+ "diem-sdk",
+ "diem-temppath",
+ "diem-types",
+ "diem-workspace-hack",
+ "diemdb",
+ "generate-key",
+ "log",
+ "move-core-types",
+ "move-prover",
+ "rand 0.8.4",
+ "structopt 0.3.21",
+ "tokio",
+ "transaction-builder-generator",
+ "walkdir",
+]
+
+[[package]]
 name = "try-lock"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -30,8 +30,8 @@ module DiemFramework::DiemTransactionPublishingOption {
     }
 
     struct ModulePublishingPreApproval has key {
-        // The sha3 for the module being published
-        module_sha3: vector<u8>,
+        // The approved sha3 for the modules being published
+        module_sha3_list: vector<vector<u8>>,
         require_pre_approval: bool,
     }
 
@@ -104,7 +104,7 @@ module DiemFramework::DiemTransactionPublishingOption {
     ) acquires ModulePublishingPreApproval {
         let account_address = Signer::address_of(&account);
         let mod_pub = borrow_global_mut<ModulePublishingPreApproval>(account_address);
-        mod_pub.module_sha3 = module_sha3;
+        Vector::push_back(&mut mod_pub.module_sha3_list, module_sha3);
     }
 
     public(script) fun set_module_publish_pre_approval(
@@ -114,7 +114,7 @@ module DiemFramework::DiemTransactionPublishingOption {
         let account_address = Signer::address_of(&account);
         if (!exists<ModulePublishingPreApproval>(account_address)) {
             move_to(&account, ModulePublishingPreApproval {
-                module_sha3: b"",
+                module_sha3_list: Vector::empty(),
                 require_pre_approval: enable,
             });
         } else {
@@ -130,7 +130,15 @@ module DiemFramework::DiemTransactionPublishingOption {
         if (exists<ModulePublishingPreApproval>(account_address)) {
             let mod_pub = borrow_global<ModulePublishingPreApproval>(account_address);
             if (mod_pub.require_pre_approval) {
-                return (&module_sha3 == &mod_pub.module_sha3)
+                let i = 0;
+                let len = Vector::length(&mod_pub.module_sha3_list);
+                while (i < len) {
+                    if (Vector::borrow(&mod_pub.module_sha3_list, i) == &module_sha3) {
+                        return true
+                    };
+                    i = i + 1;
+                };
+                return false
             }
         };
         true
