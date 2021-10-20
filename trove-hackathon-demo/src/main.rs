@@ -9,6 +9,7 @@ use diem_sdk::{
     transaction_builder::{Currency, TransactionFactory},
     types::LocalAccount,
 };
+use diem_transaction_builder::stdlib;
 use diem_types::{
     account_address::AccountAddress,
     transaction::{Script, ScriptFunction, TransactionArgument, TransactionPayload, VecBytes},
@@ -35,23 +36,18 @@ pub struct TroveHackathonDemo {
     jsonrpc_endpoint: String,
     #[structopt(subcommand)]
     cmd: Command,
-
 }
 
 #[derive(Debug, StructOpt)]
 enum Command {
     /// Create an account on the blockchain
-    CreateAccount {
-        #[structopt(long)]
-        address: String,
-        #[structopt(long)]
-        auth_key: String,
+    InitMultiToken {},
+
+    RegisterUser {
     },
 
-    /// Mint a BARS NFT
+
     MintBarsNft {
-        #[structopt(long)]
-        address: String,
     },
 
     /// Transfer a BARS NFT
@@ -82,43 +78,49 @@ async fn main() -> Result<()> {
     let mut account = LocalAccount::new(address, account_key, seq_num);
 
     match args.cmd {
-        Command::CreateAccount { .. } => {
-            // create_account()
+        Command::InitMultiToken { .. } => init_multi_token(&mut account, &client)?,
+        Command::RegisterUser { .. } => {
+            register_user(&mut account, &client)?
         }
         Command::MintBarsNft { .. } => {
-            // mint_bars_nft()
+            mint_bars_nft(&mut account, &client)?
         }
         Command::TransferBarsNft { .. } => {
             // transfer_bars_nft()
         }
     }
 
-    // Create a new account.
-    println!("Running script function");
-    let create_new_account_txn =
-        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
-            // See examples in this file for script function construction using various ty_args and args
-            // language/diem-framework/DPN/releases/artifacts/current/transaction_script_builder.rs
-            // Example for constructing TypeTag for ty_args
-            // let token = TypeTag::Struct(StructTag {
-            //     address: AccountAddress::from_hex_literal("0x1").unwrap(),
-            //     module: Identifier("XDX".into()),
-            //     name: Identifier("XDX".into()),
-            //     type_params: Vec::new(),
-            // });
-            TransactionPayload::ScriptFunction(ScriptFunction::new(
-                ModuleId::new(
-                    AccountAddress::from_hex_literal("0x1").unwrap(),
-                    ident_str!("DiemTransactionPublishingOption").to_owned(),
-                ),
-                ident_str!("set_module_publish_pre_approval").to_owned(),
-                vec![],
-                vec![bcs::to_bytes(&false).unwrap()],
-            )),
-        ));
-    send(&client, create_new_account_txn)?;
-    println!("Success!");
+    Ok(())
+}
 
+fn init_multi_token(account: &mut LocalAccount, client: &BlockingClient) -> Result<()> {
+    let txn = account.sign_with_transaction_builder(
+        TransactionFactory::new(ChainId::test())
+            .payload(stdlib::encode_initialize_multi_token_script_function()),
+    );
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
+fn register_user(account: &mut LocalAccount, client: &BlockingClient) -> Result<()> {
+    let txn = account.sign_with_transaction_builder(
+        TransactionFactory::new(ChainId::test())
+            .payload(stdlib::encode_register_user_script_function()),
+    );
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
+fn mint_bars_nft(account: &mut LocalAccount, client: &BlockingClient) -> Result<()> {
+
+    let txn = account.sign_with_transaction_builder(
+        TransactionFactory::new(ChainId::test())
+            .payload(stdlib::encode_mint_bars_script_function("Ankush".to_string().as_bytes().to_vec(), "diem.com".to_string().as_bytes().to_vec(), 100)),
+    );
+    send(&client, txn)?;
+    println!("Success");
     Ok(())
 }
 
