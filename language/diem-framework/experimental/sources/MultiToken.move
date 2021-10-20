@@ -157,7 +157,7 @@ module MultiToken {
     }
 
     /// Initialize this module, to be called in genesis.
-    public fun initialize_multi_token(account: signer) {
+    public(script) fun initialize_multi_token(account: signer) {
         assert(Signer::address_of(&account) == ADMIN, ENOT_ADMIN);
         move_to(&account, Admin {
             mint_events: Event::new_event_handle<MintEvent>(&account),
