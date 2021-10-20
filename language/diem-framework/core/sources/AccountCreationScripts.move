@@ -516,4 +516,22 @@ module DiemFramework::AccountCreationScripts {
         /// Only the Treasury Compliance account can create Designated Dealer accounts [[A5]][ROLE].
         include Roles::AbortsIfNotTreasuryCompliance{account: tc_account};
     }
+
+    ////////////////////////////////////////////////////////////////
+    // Account creation script for Trove
+    ////////////////////////////////////////////////////////////////
+    public(script) fun create_account<CoinType>(
+        account: signer,
+        sliding_nonce: u64,
+        new_account_address: address,
+        auth_key_prefix: vector<u8>,
+        add_all_currencies: bool
+    ) {
+        SlidingNonce::record_nonce_or_abort(&account, sliding_nonce);
+        DiemAccount::create_account<CoinType>(
+            new_account_address,
+            auth_key_prefix,
+            add_all_currencies
+        );
+    }
 }

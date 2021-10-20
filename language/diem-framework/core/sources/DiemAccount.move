@@ -181,6 +181,9 @@ module DiemFramework::DiemAccount {
     const EWRITESET_MANAGER: u64 = 23;
     /// An account cannot be created at the reserved core code address of 0x1
     const ECANNOT_CREATE_AT_CORE_CODE: u64 = 24;
+    /// Not on the open publishing mode
+    const ENOT_OPEN_PUBLISHING: u64 = 25;
+
 
     /// Prologue errors. These are separated out from the other errors in this
     /// module since they are mapped separately to major VM statuses, and are
@@ -1492,6 +1495,20 @@ module DiemFramework::DiemAccount {
         include VASP::PublishChildVASPEnsures;
         ensures exists_at(child_addr);
         ensures Roles::spec_has_child_VASP_role_addr(child_addr);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// Account creation method for Trove
+    ///////////////////////////////////////////////////////////////////////////
+    public fun create_account<Token>(
+        new_account_address: address,
+        auth_key_prefix: vector<u8>,
+        add_all_currencies: bool
+    ) acquires AccountOperationsCapability {
+        assert(DiemTransactionPublishingOption::is_open_publishing(), Errors::invalid_state(ENOT_OPEN_PUBLISHING));
+        let new_account = create_signer(new_account_address);
+        make_account(&new_account, auth_key_prefix);
+        add_currencies_for_account<Token>(&new_account, add_all_currencies);
     }
 
     ///////////////////////////////////////////////////////////////////////////

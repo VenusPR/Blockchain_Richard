@@ -65,6 +65,13 @@ module DiemFramework::DiemTransactionPublishingOption {
             }};
     }
 
+    /// Check if it is on the open publishing mode
+    public fun is_open_publishing(): bool {
+        let publish_option = DiemConfig::get<DiemTransactionPublishingOption>();
+        // allowlist empty = open publishing, anyone can send txes
+        Vector::is_empty(&publish_option.script_allow_list)
+    }
+
     /// Check if sender can execute script with `hash`
     public fun is_script_allowed(account: &signer, hash: &vector<u8>): bool {
         // DiemRoot can send any script
