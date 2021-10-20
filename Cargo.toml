@@ -195,6 +195,7 @@ members = [
     "testsuite/smoke-test",
     "testsuite/testcases",
     "types",
+    "trove-hackathon-demo",
     "vm-validator",
 ]
 
