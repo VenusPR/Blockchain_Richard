@@ -36,7 +36,7 @@ module MultiToken {
     /// There can be multiple tokens with the same id (unless supply is 1). Each token's
     /// corresponding token metadata is stored inside a MultiTokenData inside TokenDataCollection
     /// under the creator's address.
-    struct Token<phantom TokenType: store> has drop, key, store {
+    struct Token<phantom TokenType: store> has key, store {
         id: GUID::ID,
         balance: u64,
     }

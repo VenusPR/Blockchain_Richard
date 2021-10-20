@@ -37,6 +37,8 @@ module 0x1::MultiTokenTests {
 
         MultiToken::initialize_multi_token(admin);
         MultiTokenBalance::publish_balance<Game>(&creator);
+        MultiTokenBalance::publish_balance<Collection>(&creator);
+        MultiTokenBalance::publish_balance<Pokemon>(&creator);
         MultiTokenBalance::publish_balance<Game>(&user);
 
         let token1_id = GUID::create_id(creator_addr, 0);
@@ -106,10 +108,13 @@ module 0x1::MultiTokenTests {
         let pikachu_token = MultiToken::extract_token<Pokemon>(&pikachu);
         assert(MultiToken::parent(&pikachu_token) == &Option::some(MultiToken::id(&collection)), ECOLLECTION_FAILED);
         MultiToken::restore_token(pikachu_token);
+        MultiTokenBalance::add_to_gallery<Pokemon>(creator_addr, pikachu);
 
         let charmander_token = MultiToken::extract_token<Pokemon>(&charmander);
         assert(MultiToken::parent(&charmander_token) == &Option::some(MultiToken::id(&collection)), ECOLLECTION_FAILED);
         MultiToken::restore_token(charmander_token);
+        MultiTokenBalance::add_to_gallery<Pokemon>(creator_addr, charmander);
+        MultiTokenBalance::add_to_gallery<Collection>(creator_addr, collection);
 
         /*
         ===============================================================
