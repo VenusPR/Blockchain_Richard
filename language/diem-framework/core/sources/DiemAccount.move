@@ -1650,9 +1650,10 @@ module DiemFramework::DiemAccount {
         txn_max_gas_units: u64,
         txn_expiration_time: u64,
         chain_id: u8,
+        module_sha3: vector<u8>,
     ) acquires DiemAccount, Balance {
         assert(
-            DiemTransactionPublishingOption::is_module_allowed(&sender),
+            DiemTransactionPublishingOption::is_module_allowed_v2(&sender, module_sha3),
             Errors::invalid_state(PROLOGUE_EMODULE_NOT_ALLOWED),
         );
 

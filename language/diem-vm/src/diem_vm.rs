@@ -810,10 +810,11 @@ impl VMAdapter for DiemVM {
                 self.0
                     .run_script_prologue(session, &txn_data, &currency_code, log_context)
             }
-            TransactionPayload::Module(_module) => {
+            TransactionPayload::Module(module) => {
                 self.0.check_gas(&txn_data, log_context)?;
+                let module_sha3 = diem_crypto::HashValue::sha3_256_of(module.code()).to_vec();
                 self.0
-                    .run_module_prologue(session, &txn_data, &currency_code, log_context)
+                    .run_module_prologue(session, &txn_data, &currency_code, log_context, module_sha3)
             }
             TransactionPayload::WriteSet(_cs) => {
                 self.0

@@ -283,6 +283,7 @@ impl DiemVMImpl {
         txn_data: &TransactionMetadata,
         account_currency_symbol: &IdentStr,
         log_context: &AdapterLogSchema,
+        module_sha3: Vec<u8>,
     ) -> Result<(), VMStatus> {
         let gas_currency_ty =
             account_config::type_tag_for_currency_code(account_currency_symbol.to_owned());
@@ -293,6 +294,7 @@ impl DiemVMImpl {
         let txn_expiration_timestamp_secs = txn_data.expiration_timestamp_secs();
         let chain_id = txn_data.chain_id();
         let mut gas_status = GasStatus::new_unmetered();
+        println!("Running run_module_prologue with module_sha3: {:?}", module_sha3);
         session
             .execute_function(
                 &account_config::ACCOUNT_MODULE,
@@ -306,6 +308,7 @@ impl DiemVMImpl {
                     MoveValue::U64(txn_max_gas_units),
                     MoveValue::U64(txn_expiration_timestamp_secs),
                     MoveValue::U8(chain_id.id()),
+                    MoveValue::vector_u8(module_sha3),
                 ]),
                 &mut gas_status,
             )

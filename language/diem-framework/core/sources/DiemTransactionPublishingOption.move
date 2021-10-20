@@ -29,6 +29,12 @@ module DiemFramework::DiemTransactionPublishingOption {
         module_publishing_allowed: bool,
     }
 
+    struct ModulePublishingPreApproval has key {
+        // The sha3 for the module being published
+        module_sha3: vector<u8>,
+        require_pre_approval: bool,
+    }
+
     /// If published, halts transactions from all accounts except DiemRoot
     struct HaltAllTransactions has key {}
 
@@ -83,6 +89,53 @@ module DiemFramework::DiemTransactionPublishingOption {
     }
     spec schema AbortsIfNoTransactionPublishingOption {
         include DiemTimestamp::is_genesis() ==> DiemConfig::AbortsIfNotPublished<DiemTransactionPublishingOption>{};
+    }
+
+    public(script) fun pre_approve_module_publish(
+        account: signer,
+        module_sha3: vector<u8>,
+    ) acquires ModulePublishingPreApproval {
+        let account_address = Signer::address_of(&account);
+        let mod_pub = borrow_global_mut<ModulePublishingPreApproval>(account_address);
+        mod_pub.module_sha3 = module_sha3;
+    }
+
+    public(script) fun set_module_publish_pre_approval(
+        account: signer,
+        enable: bool,
+    ) acquires ModulePublishingPreApproval {
+        let account_address = Signer::address_of(&account);
+        if (!exists<ModulePublishingPreApproval>(account_address)) {
+            move_to(&account, ModulePublishingPreApproval {
+                module_sha3: b"",
+                require_pre_approval: enable,
+            });
+        } else {
+            let mod_pub = borrow_global_mut<ModulePublishingPreApproval>(account_address);
+            mod_pub.require_pre_approval = enable;
+        };
+    }
+
+    public fun is_module_pre_approved(
+        account_address: address,
+        module_sha3: vector<u8>
+    ): bool acquires ModulePublishingPreApproval {
+        if (exists<ModulePublishingPreApproval>(account_address)) {
+            let mod_pub = borrow_global<ModulePublishingPreApproval>(account_address);
+            if (mod_pub.require_pre_approval) {
+                return (&module_sha3 == &mod_pub.module_sha3)
+            }
+        };
+        true
+    }
+
+    public fun is_module_allowed_v2(
+        account: &signer,
+        module_sha3: vector<u8>
+    ): bool acquires ModulePublishingPreApproval {
+        let account_address = Signer::address_of(account);
+        let module_pre_approved = is_module_pre_approved(account_address, module_sha3);
+        is_module_allowed(account) && module_pre_approved
     }
 
     /// Check if a sender can publish a module
