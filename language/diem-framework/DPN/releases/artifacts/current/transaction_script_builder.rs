@@ -2206,6 +2206,13 @@ pub enum ScriptFunctionCall {
         sliding_nonce: u64,
     },
 
+    /// Mint `amount` copies of BARS tokens to the artist's account.
+    MintBars {
+        artist_name: Bytes,
+        content_uri: Bytes,
+        amount: u64,
+    },
+
     /// # Summary
     /// Publishes a CRSN resource under `account` and opts the account in to
     /// concurrent transaction processing. Upon successful execution of this
@@ -2429,6 +2436,10 @@ pub enum ScriptFunctionCall {
     PublishSharedEd25519PublicKey {
         public_key: Bytes,
     },
+
+    /// Call this function to set up relevant resources in order to
+    /// mint and receive tokens.
+    RegisterUser {},
 
     /// # Summary
     /// Updates a validator's configuration. This does not reconfigure the system and will not update
@@ -3012,6 +3023,17 @@ pub enum ScriptFunctionCall {
         designated_dealer_address: AccountAddress,
         mint_amount: u64,
         tier_index: u64,
+    },
+
+    /// Transfer `amount` of token with id `GUID::id(creator, creation_num)` from `owner`'s
+    /// balance to `to`'s balance. This operation has to be done by either the owner or an
+    /// approved operator of the owner.
+    TransferMultiTokenBetweenGalleries {
+        token_type: TypeTag,
+        to: AccountAddress,
+        amount: u64,
+        creator: AccountAddress,
+        creation_num: u64,
     },
 
     /// # Summary
@@ -3614,6 +3636,11 @@ impl ScriptFunctionCall {
             InitializeDiemConsensusConfig { sliding_nonce } => {
                 encode_initialize_diem_consensus_config_script_function(sliding_nonce)
             }
+            MintBars {
+                artist_name,
+                content_uri,
+                amount,
+            } => encode_mint_bars_script_function(artist_name, content_uri, amount),
             OptInToCrsn { crsn_size } => encode_opt_in_to_crsn_script_function(crsn_size),
             PeerToPeerBySigners {
                 currency,
@@ -3640,6 +3667,7 @@ impl ScriptFunctionCall {
             PublishSharedEd25519PublicKey { public_key } => {
                 encode_publish_shared_ed25519_public_key_script_function(public_key)
             }
+            RegisterUser {} => encode_register_user_script_function(),
             RegisterValidatorConfig {
                 validator_account,
                 consensus_pubkey,
@@ -3760,6 +3788,19 @@ impl ScriptFunctionCall {
                 designated_dealer_address,
                 mint_amount,
                 tier_index,
+            ),
+            TransferMultiTokenBetweenGalleries {
+                token_type,
+                to,
+                amount,
+                creator,
+                creation_num,
+            } => encode_transfer_multi_token_between_galleries_script_function(
+                token_type,
+                to,
+                amount,
+                creator,
+                creation_num,
             ),
             UnfreezeAccount {
                 sliding_nonce,
@@ -4798,6 +4839,27 @@ pub fn encode_initialize_diem_consensus_config_script_function(
     ))
 }
 
+/// Mint `amount` copies of BARS tokens to the artist's account.
+pub fn encode_mint_bars_script_function(
+    artist_name: Vec<u8>,
+    content_uri: Vec<u8>,
+    amount: u64,
+) -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("BARSToken").to_owned(),
+        ),
+        ident_str!("mint_bars").to_owned(),
+        vec![],
+        vec![
+            bcs::to_bytes(&artist_name).unwrap(),
+            bcs::to_bytes(&content_uri).unwrap(),
+            bcs::to_bytes(&amount).unwrap(),
+        ],
+    ))
+}
+
 /// # Summary
 /// Publishes a CRSN resource under `account` and opts the account in to
 /// concurrent transaction processing. Upon successful execution of this
@@ -5082,6 +5144,20 @@ pub fn encode_publish_shared_ed25519_public_key_script_function(
         ident_str!("publish_shared_ed25519_public_key").to_owned(),
         vec![],
         vec![bcs::to_bytes(&public_key).unwrap()],
+    ))
+}
+
+/// Call this function to set up relevant resources in order to
+/// mint and receive tokens.
+pub fn encode_register_user_script_function() -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("BARSToken").to_owned(),
+        ),
+        ident_str!("register_user").to_owned(),
+        vec![],
+        vec![],
     ))
 }
 
@@ -5866,6 +5942,32 @@ pub fn encode_tiered_mint_script_function(
             bcs::to_bytes(&designated_dealer_address).unwrap(),
             bcs::to_bytes(&mint_amount).unwrap(),
             bcs::to_bytes(&tier_index).unwrap(),
+        ],
+    ))
+}
+
+/// Transfer `amount` of token with id `GUID::id(creator, creation_num)` from `owner`'s
+/// balance to `to`'s balance. This operation has to be done by either the owner or an
+/// approved operator of the owner.
+pub fn encode_transfer_multi_token_between_galleries_script_function(
+    token_type: TypeTag,
+    to: AccountAddress,
+    amount: u64,
+    creator: AccountAddress,
+    creation_num: u64,
+) -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("MultiTokenBalance").to_owned(),
+        ),
+        ident_str!("transfer_multi_token_between_galleries").to_owned(),
+        vec![token_type],
+        vec![
+            bcs::to_bytes(&to).unwrap(),
+            bcs::to_bytes(&amount).unwrap(),
+            bcs::to_bytes(&creator).unwrap(),
+            bcs::to_bytes(&creation_num).unwrap(),
         ],
     ))
 }
@@ -8066,6 +8168,18 @@ fn decode_initialize_diem_consensus_config_script_function(
     }
 }
 
+fn decode_mint_bars_script_function(payload: &TransactionPayload) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(script) = payload {
+        Some(ScriptFunctionCall::MintBars {
+            artist_name: bcs::from_bytes(script.args().get(0)?).ok()?,
+            content_uri: bcs::from_bytes(script.args().get(1)?).ok()?,
+            amount: bcs::from_bytes(script.args().get(2)?).ok()?,
+        })
+    } else {
+        None
+    }
+}
+
 fn decode_opt_in_to_crsn_script_function(
     payload: &TransactionPayload,
 ) -> Option<ScriptFunctionCall> {
@@ -8138,6 +8252,16 @@ fn decode_publish_shared_ed25519_public_key_script_function(
         Some(ScriptFunctionCall::PublishSharedEd25519PublicKey {
             public_key: bcs::from_bytes(script.args().get(0)?).ok()?,
         })
+    } else {
+        None
+    }
+}
+
+fn decode_register_user_script_function(
+    payload: &TransactionPayload,
+) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(_script) = payload {
+        Some(ScriptFunctionCall::RegisterUser {})
     } else {
         None
     }
@@ -8349,6 +8473,22 @@ fn decode_tiered_mint_script_function(payload: &TransactionPayload) -> Option<Sc
             designated_dealer_address: bcs::from_bytes(script.args().get(1)?).ok()?,
             mint_amount: bcs::from_bytes(script.args().get(2)?).ok()?,
             tier_index: bcs::from_bytes(script.args().get(3)?).ok()?,
+        })
+    } else {
+        None
+    }
+}
+
+fn decode_transfer_multi_token_between_galleries_script_function(
+    payload: &TransactionPayload,
+) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(script) = payload {
+        Some(ScriptFunctionCall::TransferMultiTokenBetweenGalleries {
+            token_type: script.ty_args().get(0)?.clone(),
+            to: bcs::from_bytes(script.args().get(0)?).ok()?,
+            amount: bcs::from_bytes(script.args().get(1)?).ok()?,
+            creator: bcs::from_bytes(script.args().get(2)?).ok()?,
+            creation_num: bcs::from_bytes(script.args().get(3)?).ok()?,
         })
     } else {
         None
@@ -8913,6 +9053,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
             Box::new(decode_initialize_diem_consensus_config_script_function),
         );
         map.insert(
+            "BARSTokenmint_bars".to_string(),
+            Box::new(decode_mint_bars_script_function),
+        );
+        map.insert(
             "AccountAdministrationScriptsopt_in_to_crsn".to_string(),
             Box::new(decode_opt_in_to_crsn_script_function),
         );
@@ -8935,6 +9079,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
         map.insert(
             "AccountAdministrationScriptspublish_shared_ed25519_public_key".to_string(),
             Box::new(decode_publish_shared_ed25519_public_key_script_function),
+        );
+        map.insert(
+            "BARSTokenregister_user".to_string(),
+            Box::new(decode_register_user_script_function),
         );
         map.insert(
             "ValidatorAdministrationScriptsregister_validator_config".to_string(),
@@ -8996,6 +9144,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
         map.insert(
             "TreasuryComplianceScriptstiered_mint".to_string(),
             Box::new(decode_tiered_mint_script_function),
+        );
+        map.insert(
+            "MultiTokenBalancetransfer_multi_token_between_galleries".to_string(),
+            Box::new(decode_transfer_multi_token_between_galleries_script_function),
         );
         map.insert(
             "TreasuryComplianceScriptsunfreeze_account".to_string(),
