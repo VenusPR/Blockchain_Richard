@@ -1,10 +1,12 @@
 // Copyright (c) The Diem Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 #![allow(unused_imports)]
+
+use std::fs;
 use anyhow::{Context, Result};
 use diem_config::config::NodeConfig;
 use diem_crypto::PrivateKey;
-use diem_sdk::types::account_config::xus_tag;
+use diem_sdk::types::account_config::{CORE_CODE_ADDRESS, xus_tag};
 use diem_sdk::{
     client::BlockingClient,
     transaction_builder::{Currency, TransactionFactory},
@@ -23,8 +25,11 @@ use move_core_types::{
     ident_str,
     language_storage::{ModuleId, TypeTag},
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+use diem_sdk::move_types::identifier::Identifier;
+use diem_sdk::move_types::language_storage::StructTag;
+use diem_types::transaction::Module;
 
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Demo for trove hackathon")]
@@ -41,8 +46,13 @@ pub struct TroveHackathonDemo {
 
 #[derive(Debug, StructOpt)]
 enum Command {
-    /// Create an account on the blockchain
+
     InitMultiToken {},
+
+    PublishModule {
+        #[structopt(long)]
+        path: PathBuf,
+    },
 
     RegisterUser {},
 
@@ -56,9 +66,13 @@ enum Command {
     /// Transfer a BARS NFT
     TransferBarsNft {
         #[structopt(long)]
-        address_from: String,
+        to: String,
         #[structopt(long)]
-        address_to: String,
+        amount: u64,
+        #[structopt(long)]
+        creator: String,
+        #[structopt(long)]
+        creation_num: u64,
     },
 }
 
@@ -84,15 +98,64 @@ async fn main() -> Result<()> {
         Command::InitMultiToken { .. } => init_multi_token(&mut account, &client)?,
         Command::RegisterUser { .. } => register_user(&mut account, &client)?,
         Command::MintBarsNft { .. } => mint_bars_nft(&mut account, &client)?,
-        Command::TransferBarsNft { .. } => {
-            // transfer_bars_nft()
+        Command::TransferBarsNft { to, amount, creator, creation_num } => {
+            transfer_bars_nft(&mut account, &client, to, amount, creator, creation_num)?
         }
         Command::CreateAccount {
             new_account_address,
             new_auth_key_prefix,
         } => create_account(&mut account, &client, new_account_address, new_auth_key_prefix)?,
+        Command::PublishModule { path } => {
+            publish_module(&mut account, &client, path)?
+        }
     }
 
+    Ok(())
+}
+
+fn transfer_bars_nft(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    to: String,
+    amount: u64,
+    creator: String,
+    creation_num: u64,
+) -> Result<()> {
+    let token = TypeTag::Struct(StructTag {
+        address: AccountAddress::from_hex_literal("0x1").unwrap(),
+        module: Identifier::new("BARSToken").unwrap(),
+        name: Identifier::new("BARSToken").unwrap(),
+        type_params: Vec::new(),
+    });
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            stdlib::encode_transfer_token_between_galleries_script_function(
+                token,
+                AccountAddress::from_hex_literal(&to).unwrap(),
+                amount,
+                AccountAddress::from_hex_literal(&creator).unwrap(),
+                creation_num,
+            ),
+        ));
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
+fn publish_module(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    path: PathBuf,
+) -> Result<()> {
+    let input_file_path: &Path = path.as_ref();
+    let data = fs::read(input_file_path).expect("Unable to read module file");
+
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            TransactionPayload::Module(Module::new(data)),
+        ));
+    send(&client, txn)?;
+    println!("Success");
     Ok(())
 }
 
