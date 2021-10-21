@@ -1,8 +1,8 @@
 module 0x1::BARSToken {
     use Std::Option;
     use Std::Signer;
-    use 0x1::NFT;
-    use 0x1::NFTGallery;
+    use 0x1::MultiToken;
+    use 0x1::MultiTokenBalance;
     #[test_only]
     use Std::GUID;
 
@@ -20,10 +20,10 @@ module 0x1::BARSToken {
     /// consumes a signer
     fun register_user_internal(user: &signer) {
         // publish TokenBalance<BARSToken> resource
-        NFTGallery::publish_gallery<BARSToken>(user);
+        MultiTokenBalance::publish_balance<BARSToken>(user);
 
         // publish TokenDataCollection<BARSToken> resource
-        NFT::publish_token_data_collection<BARSToken>(user);
+        MultiToken::publish_token_data_collection<BARSToken>(user);
     }
 
     /// Mint `amount` copies of BARS tokens to the artist's account.
@@ -44,14 +44,14 @@ module 0x1::BARSToken {
         content_uri: vector<u8>,
         amount: u64
     ) {
-        let token = NFT::create<BARSToken>(
+        let token = MultiToken::create<BARSToken>(
             artist,
             BARSToken { artist_name },
             content_uri,
             amount,
             Option::none(),
         );
-        NFTGallery::add_to_gallery(Signer::address_of(artist), token);
+        MultiTokenBalance::add_to_gallery(Signer::address_of(artist), token);
     }
 
     #[test_only]
@@ -61,7 +61,7 @@ module 0x1::BARSToken {
 
     #[test(admin=@DiemRoot, artist=@0x42, collector=@0x43)]
     public(script) fun test_bars(admin: signer, artist: signer, collector: signer) {
-        NFT::initialize(admin);
+        MultiToken::initialize_multi_token(admin);
 
         register_user_internal(&artist);
         register_user_internal(&collector);
@@ -69,21 +69,21 @@ module 0x1::BARSToken {
         let token_id = GUID::create_id(@0x42, 0);
         mint_internal(&artist, b"kanye", b"yeezy.com", 7);
 
-        assert(NFTGallery::has_token<BARSToken>(@0x42, &token_id), EMINT_FAILED);
-        assert(NFTGallery::get_token_balance<BARSToken>(@0x42, &token_id) == 7, EMINT_FAILED);
-        assert(NFT::supply<BARSToken>(&token_id) == 7, EMINT_FAILED);
+        assert(MultiTokenBalance::has_token<BARSToken>(@0x42, &token_id), EMINT_FAILED);
+        assert(MultiTokenBalance::get_token_balance<BARSToken>(@0x42, &token_id) == 7, EMINT_FAILED);
+        assert(MultiToken::supply<BARSToken>(&token_id) == 7, EMINT_FAILED);
 
 
         // Transfer 6 units of the token from creator to user
-        NFTGallery::transfer_token_between_galleries<BARSToken>(
+        MultiTokenBalance::transfer_multi_token_between_galleries<BARSToken>(
             artist, // from
             Signer::address_of(&collector), // to
             6, // amount
             @0x42, // token.id.addr
             0, // token.id.creation_num
         );
-        assert(NFTGallery::get_token_balance<BARSToken>(@0x42, &token_id) == 1, ETRANSFER_FAILED);
-        assert(NFTGallery::get_token_balance<BARSToken>(@0x43, &token_id) == 6, ETRANSFER_FAILED);
+        assert(MultiTokenBalance::get_token_balance<BARSToken>(@0x42, &token_id) == 1, ETRANSFER_FAILED);
+        assert(MultiTokenBalance::get_token_balance<BARSToken>(@0x43, &token_id) == 6, ETRANSFER_FAILED);
     }
 
 }
