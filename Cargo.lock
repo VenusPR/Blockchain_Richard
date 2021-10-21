@@ -8854,6 +8854,7 @@ dependencies = [
  "diem-workspace-hack",
  "diemdb",
  "generate-key",
+ "hex",
  "log",
  "move-core-types",
  "move-prover",
