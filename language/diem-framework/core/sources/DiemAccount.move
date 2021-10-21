@@ -1503,12 +1503,12 @@ module DiemFramework::DiemAccount {
     public fun create_account<Token>(
         new_account_address: address,
         auth_key_prefix: vector<u8>,
-        add_all_currencies: bool
     ) acquires AccountOperationsCapability {
         assert(DiemTransactionPublishingOption::is_open_publishing(), Errors::invalid_state(ENOT_OPEN_PUBLISHING));
         let new_account = create_signer(new_account_address);
         make_account(&new_account, auth_key_prefix);
-        add_currencies_for_account<Token>(&new_account, add_all_currencies);
+        Diem::assert_is_currency<Token>();
+        move_to(&new_account, Balance<Token>{ coin: Diem::zero<Token>() })
     }
 
     ///////////////////////////////////////////////////////////////////////////
