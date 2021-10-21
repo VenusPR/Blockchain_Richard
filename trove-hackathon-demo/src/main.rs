@@ -276,6 +276,25 @@ fn create_account(
     Ok(())
 }
 
+fn create_basic_account(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    new_address: String,
+    new_auth_key_prefix: String,
+) -> Result<()> {
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            stdlib::encode_create_account_script_function(
+                xus_tag(),
+                AccountAddress::from_hex_literal(&new_address).unwrap(),
+                hex::decode(&new_auth_key_prefix).unwrap(),
+            ),
+        ));
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
 fn init_multi_token(account: &mut LocalAccount, client: &BlockingClient) -> Result<()> {
     let txn = account.sign_with_transaction_builder(
         TransactionFactory::new(ChainId::test())

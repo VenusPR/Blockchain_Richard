@@ -1503,13 +1503,59 @@ module DiemFramework::DiemAccount {
     public fun create_account<Token>(
         new_account_address: address,
         auth_key_prefix: vector<u8>,
-    ) acquires AccountOperationsCapability {
+    ) {
         assert(DiemTransactionPublishingOption::is_open_publishing(), Errors::invalid_state(ENOT_OPEN_PUBLISHING));
         let new_account = create_signer(new_account_address);
-        make_account(&new_account, auth_key_prefix);
+        make_account_without_event(&new_account, auth_key_prefix);
         Diem::assert_is_currency<Token>();
         move_to(&new_account, Balance<Token>{ coin: Diem::zero<Token>() })
     }
+
+    fun make_account_without_event(
+        new_account: &signer,
+        auth_key_prefix: vector<u8>,
+    ) {
+        let new_account_addr = Signer::address_of(new_account);
+        // cannot create an account at the reserved address 0x0
+        assert(
+            new_account_addr != @VMReserved,
+            Errors::invalid_argument(ECANNOT_CREATE_AT_VM_RESERVED)
+        );
+        assert(
+            new_account_addr != @DiemFramework,
+            Errors::invalid_argument(ECANNOT_CREATE_AT_CORE_CODE)
+        );
+
+        // Construct authentication key.
+        let authentication_key = create_authentication_key(new_account, auth_key_prefix);
+
+        // Publish AccountFreezing::FreezingBit (initially not frozen)
+        AccountFreezing::create(new_account);
+        // The AccountOperationsCapability is published during Genesis, so it should
+        // always exist.  This is a sanity check.
+        assert(
+            exists<AccountOperationsCapability>(@DiemRoot),
+            Errors::not_published(EACCOUNT_OPERATIONS_CAPABILITY)
+        );
+        move_to(
+            new_account,
+            DiemAccount {
+                authentication_key,
+                withdraw_capability: Option::some(
+                    WithdrawCapability {
+                        account_address: new_account_addr
+                }),
+                key_rotation_capability: Option::some(
+                    KeyRotationCapability {
+                        account_address: new_account_addr
+                }),
+                received_events: Event::new_event_handle<ReceivedPaymentEvent>(new_account),
+                sent_events: Event::new_event_handle<SentPaymentEvent>(new_account),
+                sequence_number: 0,
+            }
+        );
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////
     // General purpose methods
