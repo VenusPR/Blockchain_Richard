@@ -2,17 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 #![allow(unused_imports)]
 
-use std::fs;
 use anyhow::{Context, Result};
 use diem_config::config::NodeConfig;
 use diem_crypto::PrivateKey;
-use diem_sdk::types::account_config::{CORE_CODE_ADDRESS, xus_tag};
+use diem_sdk::move_types::identifier::Identifier;
+use diem_sdk::move_types::language_storage::StructTag;
+use diem_sdk::types::account_config::{xus_tag, CORE_CODE_ADDRESS};
 use diem_sdk::{
     client::BlockingClient,
     transaction_builder::{Currency, TransactionFactory},
     types::LocalAccount,
 };
 use diem_transaction_builder::stdlib;
+use diem_types::transaction::Module;
 use diem_types::{
     account_address::AccountAddress,
     transaction::{Script, ScriptFunction, TransactionArgument, TransactionPayload, VecBytes},
@@ -25,11 +27,9 @@ use move_core_types::{
     ident_str,
     language_storage::{ModuleId, TypeTag},
 };
+use std::fs;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
-use diem_sdk::move_types::identifier::Identifier;
-use diem_sdk::move_types::language_storage::StructTag;
-use diem_types::transaction::Module;
 
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Demo for trove hackathon")]
@@ -46,7 +46,6 @@ pub struct TroveHackathonDemo {
 
 #[derive(Debug, StructOpt)]
 enum Command {
-
     InitMultiToken {},
 
     PublishModule {
@@ -74,6 +73,16 @@ enum Command {
         #[structopt(long)]
         creation_num: u64,
     },
+
+    ModulePublishSetApproval {
+        #[structopt(long)]
+        enable: bool,
+    },
+
+    ApproveModule {
+        #[structopt(long)]
+        sha: String,
+    },
 }
 
 #[tokio::main]
@@ -98,18 +107,52 @@ async fn main() -> Result<()> {
         Command::InitMultiToken { .. } => init_multi_token(&mut account, &client)?,
         Command::RegisterUser { .. } => register_user(&mut account, &client)?,
         Command::MintBarsNft { .. } => mint_bars_nft(&mut account, &client)?,
-        Command::TransferBarsNft { to, amount, creator, creation_num } => {
-            transfer_bars_nft(&mut account, &client, to, amount, creator, creation_num)?
-        }
+        Command::TransferBarsNft {
+            to,
+            amount,
+            creator,
+            creation_num,
+        } => transfer_bars_nft(&mut account, &client, to, amount, creator, creation_num)?,
         Command::CreateAccount {
             new_account_address,
             new_auth_key_prefix,
-        } => create_account(&mut account, &client, new_account_address, new_auth_key_prefix)?,
-        Command::PublishModule { path } => {
-            publish_module(&mut account, &client, path)?
+        } => create_account(
+            &mut account,
+            &client,
+            new_account_address,
+            new_auth_key_prefix,
+        )?,
+        Command::PublishModule { path } => publish_module(&mut account, &client, path)?,
+        Command::ModulePublishSetApproval { enable } => {
+            module_publish_set_approval(&mut account, &client, enable)?
         }
+        Command::ApproveModule { sha } => approve_module(&mut account, &client, sha)?,
     }
 
+    Ok(())
+}
+
+fn approve_module(account: &mut LocalAccount, client: &BlockingClient, sha: String) -> Result<()> {
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            stdlib::encode_pre_approve_module_publish_script_function(hex::decode(&sha).unwrap()),
+        ));
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
+fn module_publish_set_approval(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    enable: bool,
+) -> Result<()> {
+    let txn = account.sign_with_transaction_builder(
+        TransactionFactory::new(ChainId::test())
+            .payload(stdlib::encode_set_module_publish_pre_approval_script_function(enable)),
+    );
+    send(&client, txn)?;
+    println!("Success");
     Ok(())
 }
 
@@ -150,10 +193,10 @@ fn publish_module(
     let input_file_path: &Path = path.as_ref();
     let data = fs::read(input_file_path).expect("Unable to read module file");
 
-    let txn =
-        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
-            TransactionPayload::Module(Module::new(data)),
-        ));
+    let txn = account.sign_with_transaction_builder(
+        TransactionFactory::new(ChainId::test())
+            .payload(TransactionPayload::Module(Module::new(data))),
+    );
     send(&client, txn)?;
     println!("Success");
     Ok(())
