@@ -79,6 +79,18 @@ enum Command {
         enable: bool,
     },
 
+    ProposeApproveModule {
+        #[structopt(long)]
+        sha: String,
+    },
+
+    VoteApproveModule {
+        #[structopt(long)]
+        sha: String,
+        #[structopt(long)]
+        counter: u64,
+    },
+
     ApproveModule {
         #[structopt(long)]
         sha: String,
@@ -127,8 +139,48 @@ async fn main() -> Result<()> {
             module_publish_set_approval(&mut account, &client, enable)?
         }
         Command::ApproveModule { sha } => approve_module(&mut account, &client, sha)?,
+        Command::ProposeApproveModule { sha } => {
+            propose_approve_module(&mut account, &client, sha)?
+        }
+        Command::VoteApproveModule { sha, counter } => {
+            vote_approve_module(&mut account, &client, sha, counter)?
+        }
     }
 
+    Ok(())
+}
+
+fn propose_approve_module(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    sha: String,
+) -> Result<()> {
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            stdlib::encode_propose_pre_approve_module_publish_script_function(
+                hex::decode(&sha).unwrap(),
+            ),
+        ));
+    send(&client, txn)?;
+    println!("Success");
+    Ok(())
+}
+
+fn vote_approve_module(
+    account: &mut LocalAccount,
+    client: &BlockingClient,
+    sha: String,
+    counter: u64,
+) -> Result<()> {
+    let txn =
+        account.sign_with_transaction_builder(TransactionFactory::new(ChainId::test()).payload(
+            stdlib::encode_vote_pre_approve_module_publish_script_function(
+                hex::decode(&sha).unwrap(),
+                counter,
+            ),
+        ));
+    send(&client, txn)?;
+    println!("Success");
     Ok(())
 }
 

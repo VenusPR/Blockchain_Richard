@@ -2415,6 +2415,10 @@ pub enum ScriptFunctionCall {
         amount: u64,
     },
 
+    ProposePreApproveModulePublish {
+        module_sha3: Bytes,
+    },
+
     /// # Summary
     /// Rotates the authentication key of the sending account to the newly-specified ed25519 public key and
     /// publishes a new shared authentication key derived from that public key under the sender's account.
@@ -3248,6 +3252,11 @@ pub enum ScriptFunctionCall {
         currency: TypeTag,
         allow_minting: bool,
     },
+
+    VotePreApproveModulePublish {
+        module_sha3: Bytes,
+        ballot_counter: u64,
+    },
 }
 
 impl ScriptCall {
@@ -3683,6 +3692,9 @@ impl ScriptFunctionCall {
                 encode_pre_approve_module_publish_script_function(module_sha3)
             }
             Preburn { token, amount } => encode_preburn_script_function(token, amount),
+            ProposePreApproveModulePublish { module_sha3 } => {
+                encode_propose_pre_approve_module_publish_script_function(module_sha3)
+            }
             PublishSharedEd25519PublicKey { public_key } => {
                 encode_publish_shared_ed25519_public_key_script_function(public_key)
             }
@@ -3855,6 +3867,12 @@ impl ScriptFunctionCall {
                 currency,
                 allow_minting,
             } => encode_update_minting_ability_script_function(currency, allow_minting),
+            VotePreApproveModulePublish {
+                module_sha3,
+                ballot_counter,
+            } => {
+                encode_vote_pre_approve_module_publish_script_function(module_sha3, ballot_counter)
+            }
         }
     }
 
@@ -5157,6 +5175,20 @@ pub fn encode_preburn_script_function(token: TypeTag, amount: u64) -> Transactio
     ))
 }
 
+pub fn encode_propose_pre_approve_module_publish_script_function(
+    module_sha3: Vec<u8>,
+) -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("DiemTransactionPublishingOption").to_owned(),
+        ),
+        ident_str!("propose_pre_approve_module_publish").to_owned(),
+        vec![],
+        vec![bcs::to_bytes(&module_sha3).unwrap()],
+    ))
+}
+
 /// # Summary
 /// Rotates the authentication key of the sending account to the newly-specified ed25519 public key and
 /// publishes a new shared authentication key derived from that public key under the sender's account.
@@ -6300,6 +6332,24 @@ pub fn encode_update_minting_ability_script_function(
         ident_str!("update_minting_ability").to_owned(),
         vec![currency],
         vec![bcs::to_bytes(&allow_minting).unwrap()],
+    ))
+}
+
+pub fn encode_vote_pre_approve_module_publish_script_function(
+    module_sha3: Vec<u8>,
+    ballot_counter: u64,
+) -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("DiemTransactionPublishingOption").to_owned(),
+        ),
+        ident_str!("vote_pre_approve_module_publish").to_owned(),
+        vec![],
+        vec![
+            bcs::to_bytes(&module_sha3).unwrap(),
+            bcs::to_bytes(&ballot_counter).unwrap(),
+        ],
     ))
 }
 
@@ -8320,6 +8370,18 @@ fn decode_preburn_script_function(payload: &TransactionPayload) -> Option<Script
     }
 }
 
+fn decode_propose_pre_approve_module_publish_script_function(
+    payload: &TransactionPayload,
+) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(script) = payload {
+        Some(ScriptFunctionCall::ProposePreApproveModulePublish {
+            module_sha3: bcs::from_bytes(script.args().get(0)?).ok()?,
+        })
+    } else {
+        None
+    }
+}
+
 fn decode_publish_shared_ed25519_public_key_script_function(
     payload: &TransactionPayload,
 ) -> Option<ScriptFunctionCall> {
@@ -8644,6 +8706,19 @@ fn decode_update_minting_ability_script_function(
         Some(ScriptFunctionCall::UpdateMintingAbility {
             currency: script.ty_args().get(0)?.clone(),
             allow_minting: bcs::from_bytes(script.args().get(0)?).ok()?,
+        })
+    } else {
+        None
+    }
+}
+
+fn decode_vote_pre_approve_module_publish_script_function(
+    payload: &TransactionPayload,
+) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(script) = payload {
+        Some(ScriptFunctionCall::VotePreApproveModulePublish {
+            module_sha3: bcs::from_bytes(script.args().get(0)?).ok()?,
+            ballot_counter: bcs::from_bytes(script.args().get(1)?).ok()?,
         })
     } else {
         None
@@ -9160,6 +9235,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
             Box::new(decode_preburn_script_function),
         );
         map.insert(
+            "DiemTransactionPublishingOptionpropose_pre_approve_module_publish".to_string(),
+            Box::new(decode_propose_pre_approve_module_publish_script_function),
+        );
+        map.insert(
             "AccountAdministrationScriptspublish_shared_ed25519_public_key".to_string(),
             Box::new(decode_publish_shared_ed25519_public_key_script_function),
         );
@@ -9255,6 +9334,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
         map.insert(
             "TreasuryComplianceScriptsupdate_minting_ability".to_string(),
             Box::new(decode_update_minting_ability_script_function),
+        );
+        map.insert(
+            "DiemTransactionPublishingOptionvote_pre_approve_module_publish".to_string(),
+            Box::new(decode_vote_pre_approve_module_publish_script_function),
         );
         map
     });

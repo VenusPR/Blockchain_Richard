@@ -3,6 +3,8 @@ module DiemFramework::DiemTransactionPublishingOption {
     use DiemFramework::DiemConfig::{Self, DiemConfig};
     use DiemFramework::DiemTimestamp;
     use DiemFramework::Roles;
+    use DiemFramework::Vote;
+    use Std::BCS;
     use Std::Errors;
     use Std::Signer;
     use Std::Vector;
@@ -96,6 +98,54 @@ module DiemFramework::DiemTransactionPublishingOption {
     }
     spec schema AbortsIfNoTransactionPublishingOption {
         include DiemTimestamp::is_genesis() ==> DiemConfig::AbortsIfNotPublished<DiemTransactionPublishingOption>{};
+    }
+
+    struct ModulePublishProposal has store, copy, drop {
+        module_sha3: vector<u8>,
+    }
+
+    public(script) fun propose_pre_approve_module_publish(
+        account: signer,
+        module_sha3: vector<u8>,
+    ) {
+        let proposal = ModulePublishProposal {
+            module_sha3: module_sha3,
+        };
+        let addr = Signer::address_of(&account);
+        let approvers = Vector::empty();
+        Vector::push_back(&mut approvers, Vote::new_weighted_voter(1, BCS::to_bytes(&addr)));
+        Vote::create_ballot(
+            &account, // ballot_account
+            *(&proposal), // proposal
+            b"module_publish_preapproval", // proposal_type
+            1, // num_votes_required
+            approvers, // allowed_voters
+            2634834564, // expiration_timestamp_secs
+        );
+    }
+
+    public(script) fun vote_pre_approve_module_publish(
+        account: signer,
+        module_sha3: vector<u8>,
+        ballot_counter: u64,
+    ) acquires ModulePublishingPreApproval {
+        let proposal = ModulePublishProposal {
+            module_sha3: *(&module_sha3),
+        };
+        let addr = Signer::address_of(&account);
+        let ballot_id = Vote::new_ballot_id(
+            ballot_counter,
+            addr,
+        );
+        let success = Vote::vote(
+            &account,
+            ballot_id,
+            b"module_publish_preapproval",
+            proposal,
+        );
+        if (success) {
+            pre_approve_module_publish(account, module_sha3);
+        };
     }
 
     public(script) fun pre_approve_module_publish(
