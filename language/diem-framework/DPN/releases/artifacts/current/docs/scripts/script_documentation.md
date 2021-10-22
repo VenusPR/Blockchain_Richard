@@ -1458,6 +1458,37 @@ Only the Treasury Compliance account can create Designated Dealer accounts [[A5]
 
 </details>
 
+<a name="0x1_AccountCreationScripts_create_account"></a>
+
+##### Function `create_account`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="script_documentation.md#0x1_AccountCreationScripts_create_account">create_account</a>&lt;CoinType&gt;(_account: signer, new_account_address: address, auth_key_prefix: vector&lt;u8&gt;)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="script_documentation.md#0x1_AccountCreationScripts_create_account">create_account</a>&lt;CoinType&gt;(
+    _account: signer,
+    new_account_address: address,
+    auth_key_prefix: vector&lt;u8&gt;,
+) {
+    <a href="../../../../../../DPN/releases/artifacts/current/docs/sources/DiemAccount.md#0x1_DiemAccount_create_account">DiemAccount::create_account</a>&lt;CoinType&gt;(
+        new_account_address,
+        auth_key_prefix,
+    );
+}
+</code></pre>
+
+
+
+</details>
+
 
 ---
 
@@ -5566,6 +5597,7 @@ a reconfiguration of the system.
 -  [`0x1::ValidatorAdministrationScripts`](script_documentation.md#0x1_ValidatorAdministrationScripts)
 -  [`0x1::ValidatorConfig`](../../../../../../DPN/releases/artifacts/current/docs/sources/ValidatorConfig.md#0x1_ValidatorConfig)
 -  [`0x1::ValidatorOperatorConfig`](../../../../../../DPN/releases/artifacts/current/docs/sources/ValidatorOperatorConfig.md#0x1_ValidatorOperatorConfig)
+-  [`0x1::Vote`](../../../../../../DPN/releases/artifacts/current/docs/sources/Vote.md#0x1_Vote)
 -  [`0x1::XDX`](../../../../../../DPN/releases/artifacts/current/docs/sources/XDX.md#0x1_XDX)
 -  [`0x1::XUS`](../../../../../../DPN/releases/artifacts/current/docs/sources/XUS.md#0x1_XUS)
 

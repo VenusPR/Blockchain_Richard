@@ -7,10 +7,19 @@ This module defines a struct storing the publishing policies for the VM.
 
 
 -  [Struct `DiemTransactionPublishingOption`](#0x1_DiemTransactionPublishingOption_DiemTransactionPublishingOption)
+-  [Resource `ModulePublishingPreApproval`](#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval)
 -  [Resource `HaltAllTransactions`](#0x1_DiemTransactionPublishingOption_HaltAllTransactions)
+-  [Struct `ModulePublishProposal`](#0x1_DiemTransactionPublishingOption_ModulePublishProposal)
 -  [Constants](#@Constants_0)
 -  [Function `initialize`](#0x1_DiemTransactionPublishingOption_initialize)
+-  [Function `is_open_publishing`](#0x1_DiemTransactionPublishingOption_is_open_publishing)
 -  [Function `is_script_allowed`](#0x1_DiemTransactionPublishingOption_is_script_allowed)
+-  [Function `propose_pre_approve_module_publish`](#0x1_DiemTransactionPublishingOption_propose_pre_approve_module_publish)
+-  [Function `vote_pre_approve_module_publish`](#0x1_DiemTransactionPublishingOption_vote_pre_approve_module_publish)
+-  [Function `pre_approve_module_publish`](#0x1_DiemTransactionPublishingOption_pre_approve_module_publish)
+-  [Function `set_module_publish_pre_approval`](#0x1_DiemTransactionPublishingOption_set_module_publish_pre_approval)
+-  [Function `is_module_pre_approved`](#0x1_DiemTransactionPublishingOption_is_module_pre_approved)
+-  [Function `is_module_allowed_v2`](#0x1_DiemTransactionPublishingOption_is_module_allowed_v2)
 -  [Function `is_module_allowed`](#0x1_DiemTransactionPublishingOption_is_module_allowed)
 -  [Function `set_open_script`](#0x1_DiemTransactionPublishingOption_set_open_script)
 -  [Function `set_open_module`](#0x1_DiemTransactionPublishingOption_set_open_module)
@@ -23,12 +32,14 @@ This module defines a struct storing the publishing policies for the VM.
     -  [Helper Functions](#@Helper_Functions_4)
 
 
-<pre><code><b>use</b> <a href="DiemConfig.md#0x1_DiemConfig">0x1::DiemConfig</a>;
+<pre><code><b>use</b> <a href="../../../../../../../move-stdlib/docs/BCS.md#0x1_BCS">0x1::BCS</a>;
+<b>use</b> <a href="DiemConfig.md#0x1_DiemConfig">0x1::DiemConfig</a>;
 <b>use</b> <a href="DiemTimestamp.md#0x1_DiemTimestamp">0x1::DiemTimestamp</a>;
 <b>use</b> <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors">0x1::Errors</a>;
 <b>use</b> <a href="Roles.md#0x1_Roles">0x1::Roles</a>;
 <b>use</b> <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer">0x1::Signer</a>;
 <b>use</b> <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector">0x1::Vector</a>;
+<b>use</b> <a href="Vote.md#0x1_Vote">0x1::Vote</a>;
 </code></pre>
 
 
@@ -72,6 +83,39 @@ We represent these as the following resource.
 
 </details>
 
+<a name="0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval"></a>
+
+## Resource `ModulePublishingPreApproval`
+
+
+
+<pre><code><b>struct</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> has key
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>module_sha3_list: vector&lt;vector&lt;u8&gt;&gt;</code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>require_pre_approval: bool</code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
+
 <a name="0x1_DiemTransactionPublishingOption_HaltAllTransactions"></a>
 
 ## Resource `HaltAllTransactions`
@@ -91,6 +135,33 @@ If published, halts transactions from all accounts except DiemRoot
 <dl>
 <dt>
 <code>dummy_field: bool</code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_ModulePublishProposal"></a>
+
+## Struct `ModulePublishProposal`
+
+
+
+<pre><code><b>struct</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishProposal">ModulePublishProposal</a> has <b>copy</b>, drop, store
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>module_sha3: vector&lt;u8&gt;</code>
 </dt>
 <dd>
 
@@ -200,6 +271,33 @@ Must abort if the signer does not have the DiemRoot role [[H11]][PERMISSION].
 
 </details>
 
+<a name="0x1_DiemTransactionPublishingOption_is_open_publishing"></a>
+
+## Function `is_open_publishing`
+
+Check if it is on the open publishing mode
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_open_publishing">is_open_publishing</a>(): bool
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_open_publishing">is_open_publishing</a>(): bool {
+    <b>let</b> publish_option = <a href="DiemConfig.md#0x1_DiemConfig_get">DiemConfig::get</a>&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption">DiemTransactionPublishingOption</a>&gt;();
+    // allowlist empty = open publishing, anyone can send txes
+    <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_is_empty">Vector::is_empty</a>(&publish_option.script_allow_list)
+}
+</code></pre>
+
+
+
+</details>
+
 <a name="0x1_DiemTransactionPublishingOption_is_script_allowed"></a>
 
 ## Function `is_script_allowed`
@@ -256,6 +354,225 @@ Check if sender can execute script with <code>hash</code>
 
 <pre><code><b>schema</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_AbortsIfNoTransactionPublishingOption">AbortsIfNoTransactionPublishingOption</a> {
     <b>include</b> <a href="DiemTimestamp.md#0x1_DiemTimestamp_is_genesis">DiemTimestamp::is_genesis</a>() ==&gt; <a href="DiemConfig.md#0x1_DiemConfig_AbortsIfNotPublished">DiemConfig::AbortsIfNotPublished</a>&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption">DiemTransactionPublishingOption</a>&gt;{};
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_propose_pre_approve_module_publish"></a>
+
+## Function `propose_pre_approve_module_publish`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_propose_pre_approve_module_publish">propose_pre_approve_module_publish</a>(account: signer, module_sha3: vector&lt;u8&gt;)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_propose_pre_approve_module_publish">propose_pre_approve_module_publish</a>(
+    account: signer,
+    module_sha3: vector&lt;u8&gt;,
+) {
+    <b>let</b> proposal = <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishProposal">ModulePublishProposal</a> {
+        module_sha3: module_sha3,
+    };
+    <b>let</b> addr = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(&account);
+    <b>let</b> approvers = <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_empty">Vector::empty</a>();
+    <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_push_back">Vector::push_back</a>(&<b>mut</b> approvers, <a href="Vote.md#0x1_Vote_new_weighted_voter">Vote::new_weighted_voter</a>(1, <a href="../../../../../../../move-stdlib/docs/BCS.md#0x1_BCS_to_bytes">BCS::to_bytes</a>(&addr)));
+    <a href="Vote.md#0x1_Vote_create_ballot">Vote::create_ballot</a>(
+        &account, // ballot_account
+        *(&proposal), // proposal
+        b"module_publish_preapproval", // proposal_type
+        1, // num_votes_required
+        approvers, // allowed_voters
+        2634834564, // expiration_timestamp_secs
+    );
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_vote_pre_approve_module_publish"></a>
+
+## Function `vote_pre_approve_module_publish`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_vote_pre_approve_module_publish">vote_pre_approve_module_publish</a>(account: signer, module_sha3: vector&lt;u8&gt;, ballot_counter: u64)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_vote_pre_approve_module_publish">vote_pre_approve_module_publish</a>(
+    account: signer,
+    module_sha3: vector&lt;u8&gt;,
+    ballot_counter: u64,
+) <b>acquires</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+    <b>let</b> proposal = <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishProposal">ModulePublishProposal</a> {
+        module_sha3: *(&module_sha3),
+    };
+    <b>let</b> addr = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(&account);
+    <b>let</b> ballot_id = <a href="Vote.md#0x1_Vote_new_ballot_id">Vote::new_ballot_id</a>(
+        ballot_counter,
+        addr,
+    );
+    <b>let</b> success = <a href="Vote.md#0x1_Vote_vote">Vote::vote</a>(
+        &account,
+        ballot_id,
+        b"module_publish_preapproval",
+        proposal,
+    );
+    <b>if</b> (success) {
+        <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_pre_approve_module_publish">pre_approve_module_publish</a>(account, module_sha3);
+    };
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_pre_approve_module_publish"></a>
+
+## Function `pre_approve_module_publish`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_pre_approve_module_publish">pre_approve_module_publish</a>(account: signer, module_sha3: vector&lt;u8&gt;)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_pre_approve_module_publish">pre_approve_module_publish</a>(
+    account: signer,
+    module_sha3: vector&lt;u8&gt;,
+) <b>acquires</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+    <b>let</b> account_address = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(&account);
+    <b>let</b> mod_pub = borrow_global_mut&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a>&gt;(account_address);
+    <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_push_back">Vector::push_back</a>(&<b>mut</b> mod_pub.module_sha3_list, module_sha3);
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_set_module_publish_pre_approval"></a>
+
+## Function `set_module_publish_pre_approval`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_set_module_publish_pre_approval">set_module_publish_pre_approval</a>(account: signer, enable: bool)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_set_module_publish_pre_approval">set_module_publish_pre_approval</a>(
+    account: signer,
+    enable: bool,
+) <b>acquires</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+    <b>let</b> account_address = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(&account);
+    <b>if</b> (!<b>exists</b>&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a>&gt;(account_address)) {
+        move_to(&account, <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+            module_sha3_list: <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_empty">Vector::empty</a>(),
+            require_pre_approval: enable,
+        });
+    } <b>else</b> {
+        <b>let</b> mod_pub = borrow_global_mut&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a>&gt;(account_address);
+        mod_pub.require_pre_approval = enable;
+    };
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_is_module_pre_approved"></a>
+
+## Function `is_module_pre_approved`
+
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_pre_approved">is_module_pre_approved</a>(account_address: address, module_sha3: vector&lt;u8&gt;): bool
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_pre_approved">is_module_pre_approved</a>(
+    account_address: address,
+    module_sha3: vector&lt;u8&gt;
+): bool <b>acquires</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+    <b>if</b> (<b>exists</b>&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a>&gt;(account_address)) {
+        <b>let</b> mod_pub = borrow_global&lt;<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a>&gt;(account_address);
+        <b>if</b> (mod_pub.require_pre_approval) {
+            <b>let</b> i = 0;
+            <b>let</b> len = <a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_length">Vector::length</a>(&mod_pub.module_sha3_list);
+            <b>while</b> (i &lt; len) {
+                <b>if</b> (<a href="../../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_borrow">Vector::borrow</a>(&mod_pub.module_sha3_list, i) == &module_sha3) {
+                    <b>return</b> <b>true</b>
+                };
+                i = i + 1;
+            };
+            <b>return</b> <b>false</b>
+        }
+    };
+    <b>true</b>
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemTransactionPublishingOption_is_module_allowed_v2"></a>
+
+## Function `is_module_allowed_v2`
+
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_allowed_v2">is_module_allowed_v2</a>(account: &signer, module_sha3: vector&lt;u8&gt;): bool
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_allowed_v2">is_module_allowed_v2</a>(
+    account: &signer,
+    module_sha3: vector&lt;u8&gt;
+): bool <b>acquires</b> <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_ModulePublishingPreApproval">ModulePublishingPreApproval</a> {
+    <b>let</b> account_address = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(account);
+    <b>let</b> module_pre_approved = <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_pre_approved">is_module_pre_approved</a>(account_address, module_sha3);
+    <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_allowed">is_module_allowed</a>(account) && module_pre_approved
 }
 </code></pre>
 

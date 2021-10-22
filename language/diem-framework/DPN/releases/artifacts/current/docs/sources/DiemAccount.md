@@ -45,6 +45,8 @@ before and after every transaction.
 -  [Function `create_designated_dealer`](#0x1_DiemAccount_create_designated_dealer)
 -  [Function `create_parent_vasp_account`](#0x1_DiemAccount_create_parent_vasp_account)
 -  [Function `create_child_vasp_account`](#0x1_DiemAccount_create_child_vasp_account)
+-  [Function `create_account`](#0x1_DiemAccount_create_account)
+-  [Function `make_account_without_event`](#0x1_DiemAccount_make_account_without_event)
 -  [Function `create_signer`](#0x1_DiemAccount_create_signer)
 -  [Function `publish_crsn`](#0x1_DiemAccount_publish_crsn)
 -  [Function `balance_for`](#0x1_DiemAccount_balance_for)
@@ -617,6 +619,16 @@ The provided authentication had an invalid length
 
 
 <pre><code><b>const</b> <a href="DiemAccount.md#0x1_DiemAccount_EMALFORMED_AUTHENTICATION_KEY">EMALFORMED_AUTHENTICATION_KEY</a>: u64 = 8;
+</code></pre>
+
+
+
+<a name="0x1_DiemAccount_ENOT_OPEN_PUBLISHING"></a>
+
+Not on the open publishing mode
+
+
+<pre><code><b>const</b> <a href="DiemAccount.md#0x1_DiemAccount_ENOT_OPEN_PUBLISHING">ENOT_OPEN_PUBLISHING</a>: u64 = 25;
 </code></pre>
 
 
@@ -3226,6 +3238,103 @@ also be added. This account will be a child of <code>creator</code>, which must 
 
 </details>
 
+<a name="0x1_DiemAccount_create_account"></a>
+
+## Function `create_account`
+
+Account creation method for Trove
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_create_account">create_account</a>&lt;Token&gt;(new_account_address: address, auth_key_prefix: vector&lt;u8&gt;)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_create_account">create_account</a>&lt;Token&gt;(
+    new_account_address: address,
+    auth_key_prefix: vector&lt;u8&gt;,
+) {
+    <b>assert</b>(<a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_open_publishing">DiemTransactionPublishingOption::is_open_publishing</a>(), <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_state">Errors::invalid_state</a>(<a href="DiemAccount.md#0x1_DiemAccount_ENOT_OPEN_PUBLISHING">ENOT_OPEN_PUBLISHING</a>));
+    <b>let</b> new_account = <a href="DiemAccount.md#0x1_DiemAccount_create_signer">create_signer</a>(new_account_address);
+    <a href="DiemAccount.md#0x1_DiemAccount_make_account_without_event">make_account_without_event</a>(&new_account, auth_key_prefix);
+    <a href="Diem.md#0x1_Diem_assert_is_currency">Diem::assert_is_currency</a>&lt;Token&gt;();
+    move_to(&new_account, <a href="DiemAccount.md#0x1_DiemAccount_Balance">Balance</a>&lt;Token&gt;{ coin: <a href="Diem.md#0x1_Diem_zero">Diem::zero</a>&lt;Token&gt;() })
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_DiemAccount_make_account_without_event"></a>
+
+## Function `make_account_without_event`
+
+
+
+<pre><code><b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_make_account_without_event">make_account_without_event</a>(new_account: &signer, auth_key_prefix: vector&lt;u8&gt;)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_make_account_without_event">make_account_without_event</a>(
+    new_account: &signer,
+    auth_key_prefix: vector&lt;u8&gt;,
+) {
+    <b>let</b> new_account_addr = <a href="../../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(new_account);
+    // cannot create an account at the reserved address 0x0
+    <b>assert</b>(
+        new_account_addr != @VMReserved,
+        <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_argument">Errors::invalid_argument</a>(<a href="DiemAccount.md#0x1_DiemAccount_ECANNOT_CREATE_AT_VM_RESERVED">ECANNOT_CREATE_AT_VM_RESERVED</a>)
+    );
+    <b>assert</b>(
+        new_account_addr != @DiemFramework,
+        <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_argument">Errors::invalid_argument</a>(<a href="DiemAccount.md#0x1_DiemAccount_ECANNOT_CREATE_AT_CORE_CODE">ECANNOT_CREATE_AT_CORE_CODE</a>)
+    );
+
+    // Construct authentication key.
+    <b>let</b> authentication_key = <a href="DiemAccount.md#0x1_DiemAccount_create_authentication_key">create_authentication_key</a>(new_account, auth_key_prefix);
+
+    // Publish <a href="AccountFreezing.md#0x1_AccountFreezing_FreezingBit">AccountFreezing::FreezingBit</a> (initially not frozen)
+    <a href="AccountFreezing.md#0x1_AccountFreezing_create">AccountFreezing::create</a>(new_account);
+    // The <a href="DiemAccount.md#0x1_DiemAccount_AccountOperationsCapability">AccountOperationsCapability</a> is published during <a href="Genesis.md#0x1_Genesis">Genesis</a>, so it should
+    // always exist.  This is a sanity check.
+    <b>assert</b>(
+        <b>exists</b>&lt;<a href="DiemAccount.md#0x1_DiemAccount_AccountOperationsCapability">AccountOperationsCapability</a>&gt;(@DiemRoot),
+        <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_not_published">Errors::not_published</a>(<a href="DiemAccount.md#0x1_DiemAccount_EACCOUNT_OPERATIONS_CAPABILITY">EACCOUNT_OPERATIONS_CAPABILITY</a>)
+    );
+    move_to(
+        new_account,
+        <a href="DiemAccount.md#0x1_DiemAccount">DiemAccount</a> {
+            authentication_key,
+            withdraw_capability: <a href="../../../../../../../move-stdlib/docs/Option.md#0x1_Option_some">Option::some</a>(
+                <a href="DiemAccount.md#0x1_DiemAccount_WithdrawCapability">WithdrawCapability</a> {
+                    account_address: new_account_addr
+            }),
+            key_rotation_capability: <a href="../../../../../../../move-stdlib/docs/Option.md#0x1_Option_some">Option::some</a>(
+                <a href="DiemAccount.md#0x1_DiemAccount_KeyRotationCapability">KeyRotationCapability</a> {
+                    account_address: new_account_addr
+            }),
+            received_events: <a href="../../../../../../../move-stdlib/docs/Event.md#0x1_Event_new_event_handle">Event::new_event_handle</a>&lt;<a href="DiemAccount.md#0x1_DiemAccount_ReceivedPaymentEvent">ReceivedPaymentEvent</a>&gt;(new_account),
+            sent_events: <a href="../../../../../../../move-stdlib/docs/Event.md#0x1_Event_new_event_handle">Event::new_event_handle</a>&lt;<a href="DiemAccount.md#0x1_DiemAccount_SentPaymentEvent">SentPaymentEvent</a>&gt;(new_account),
+            sequence_number: 0,
+        }
+    );
+}
+</code></pre>
+
+
+
+</details>
+
 <a name="0x1_DiemAccount_create_signer"></a>
 
 ## Function `create_signer`
@@ -3760,7 +3869,7 @@ Checks if an account exists at <code>check_addr</code>
 The prologue for module transaction
 
 
-<pre><code><b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_module_prologue">module_prologue</a>&lt;Token&gt;(sender: signer, txn_sequence_number: u64, txn_public_key: vector&lt;u8&gt;, txn_gas_price: u64, txn_max_gas_units: u64, txn_expiration_time: u64, chain_id: u8)
+<pre><code><b>fun</b> <a href="DiemAccount.md#0x1_DiemAccount_module_prologue">module_prologue</a>&lt;Token&gt;(sender: signer, txn_sequence_number: u64, txn_public_key: vector&lt;u8&gt;, txn_gas_price: u64, txn_max_gas_units: u64, txn_expiration_time: u64, chain_id: u8, module_sha3: vector&lt;u8&gt;)
 </code></pre>
 
 
@@ -3777,9 +3886,10 @@ The prologue for module transaction
     txn_max_gas_units: u64,
     txn_expiration_time: u64,
     chain_id: u8,
+    module_sha3: vector&lt;u8&gt;,
 ) <b>acquires</b> <a href="DiemAccount.md#0x1_DiemAccount">DiemAccount</a>, <a href="DiemAccount.md#0x1_DiemAccount_Balance">Balance</a> {
     <b>assert</b>(
-        <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_allowed">DiemTransactionPublishingOption::is_module_allowed</a>(&sender),
+        <a href="DiemTransactionPublishingOption.md#0x1_DiemTransactionPublishingOption_is_module_allowed_v2">DiemTransactionPublishingOption::is_module_allowed_v2</a>(&sender, module_sha3),
         <a href="../../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_state">Errors::invalid_state</a>(<a href="DiemAccount.md#0x1_DiemAccount_PROLOGUE_EMODULE_NOT_ALLOWED">PROLOGUE_EMODULE_NOT_ALLOWED</a>),
     );
 

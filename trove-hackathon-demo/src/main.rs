@@ -62,6 +62,11 @@ enum Command {
         new_auth_key_prefix: String,
     },
 
+    CreateBasicAccount {
+        new_account_address: String,
+        new_auth_key_prefix: String,
+    },
+
     /// Transfer a BARS NFT
     TransferBarsNft {
         #[structopt(long)]
@@ -129,6 +134,15 @@ async fn main() -> Result<()> {
             new_account_address,
             new_auth_key_prefix,
         } => create_account(
+            &mut account,
+            &client,
+            new_account_address,
+            new_auth_key_prefix,
+        )?,
+        Command::CreateBasicAccount {
+            new_account_address,
+            new_auth_key_prefix,
+        } => create_basic_account(
             &mut account,
             &client,
             new_account_address,
