@@ -3,10 +3,11 @@ name: weekly
 on:
   schedule:
     # this script will run each Friday at 10:10 UTC
-    - cron: "10 10 * * 5"
+    - cron: "0 20 * * 1"
 
 jobs:
   dep-report:
+    if: false # always skip
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/diem/diem_build_environment:main
@@ -27,7 +28,7 @@ jobs:
           webhook: ${{ secrets.WEBHOOK_DEPENDENCY_CHANGES }}
 
   transaction-replay:
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-20.04-xl
     container:
       image: ghcr.io/diem/diem_build_environment:main
       volumes:
