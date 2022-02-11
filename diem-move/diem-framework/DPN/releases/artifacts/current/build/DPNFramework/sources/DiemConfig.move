@@ -405,6 +405,7 @@ module DiemFramework::DiemConfig {
         let post msg = NewEpochEvent {
                 epoch: config.epoch,
         };
+        ensures config.epoch == 1;
         emits msg to handle;
     }
 

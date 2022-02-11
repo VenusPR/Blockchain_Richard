@@ -491,6 +491,7 @@ their root/parent account.
 
 
 <pre><code><b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishWindowAbortsIf">PublishWindowAbortsIf</a>&lt;CoinType&gt;;
+<b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishWindowEnsures">PublishWindowEnsures</a>&lt;CoinType&gt;;
 </code></pre>
 
 
@@ -515,6 +516,20 @@ Only ParentVASP and ChildVASP can have the account limits [[E1]][ROLE][[E2]][ROL
     <b>include</b> <a href="Roles.md#0x1_Roles_AbortsIfNotDiemRoot">Roles::AbortsIfNotDiemRoot</a>{account: dr_account};
     <b>aborts_if</b> !<b>exists</b>&lt;<a href="AccountLimits.md#0x1_AccountLimits_LimitsDefinition">LimitsDefinition</a>&lt;CoinType&gt;&gt;(limit_address) <b>with</b> Errors::NOT_PUBLISHED;
     <b>aborts_if</b> <b>exists</b>&lt;<a href="AccountLimits.md#0x1_AccountLimits_Window">Window</a>&lt;CoinType&gt;&gt;(<a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(to_limit)) <b>with</b> Errors::ALREADY_PUBLISHED;
+}
+</code></pre>
+
+
+
+
+<a name="0x1_AccountLimits_PublishWindowEnsures"></a>
+
+
+<pre><code><b>schema</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishWindowEnsures">PublishWindowEnsures</a>&lt;CoinType&gt; {
+    to_limit: signer;
+    <b>ensures</b> <b>global</b>&lt;<a href="AccountLimits.md#0x1_AccountLimits_Window">Window</a>&lt;CoinType&gt;&gt;(<a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(to_limit)).window_inflow == 0;
+    <b>ensures</b> <b>global</b>&lt;<a href="AccountLimits.md#0x1_AccountLimits_Window">Window</a>&lt;CoinType&gt;&gt;(<a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(to_limit)).window_outflow == 0;
+    <b>ensures</b> <b>global</b>&lt;<a href="AccountLimits.md#0x1_AccountLimits_Window">Window</a>&lt;CoinType&gt;&gt;(<a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(to_limit)).tracked_balance == 0;
 }
 </code></pre>
 
@@ -1367,6 +1382,18 @@ Checks whether the limits definition is unrestricted.
 <pre><code><b>fun</b> <a href="AccountLimits.md#0x1_AccountLimits_current_time">current_time</a>(): u64 {
     <b>if</b> (<a href="DiemTimestamp.md#0x1_DiemTimestamp_is_genesis">DiemTimestamp::is_genesis</a>()) 0 <b>else</b> <a href="DiemTimestamp.md#0x1_DiemTimestamp_now_microseconds">DiemTimestamp::now_microseconds</a>()
 }
+</code></pre>
+
+
+
+</details>
+
+<details>
+<summary>Specification</summary>
+
+
+
+<pre><code><b>ensures</b> <a href="DiemTimestamp.md#0x1_DiemTimestamp_is_genesis">DiemTimestamp::is_genesis</a>() ==&gt; result == 0;
 </code></pre>
 
 

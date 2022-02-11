@@ -1311,6 +1311,7 @@ module DiemFramework::Diem {
     spec schema RegisterCurrencyEnsures<CoinType> {
         ensures spec_is_currency<CoinType>();
         ensures spec_currency_info<CoinType>().total_value == 0;
+        ensures spec_currency_info<CoinType>().preburn_value == 0;
     }
 
     /// Registers a stable currency (SCS) coin -- i.e., a non-synthetic currency.

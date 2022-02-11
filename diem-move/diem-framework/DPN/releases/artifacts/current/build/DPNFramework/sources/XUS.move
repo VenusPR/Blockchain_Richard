@@ -31,7 +31,7 @@ module DiemFramework::XUS {
         use DiemFramework::Roles;
         include Diem::RegisterSCSCurrencyAbortsIf<XUS>{
             currency_code: b"XUS",
-            scaling_factor: 1000000
+            scaling_factor: 1000000,
         };
         include AccountLimits::PublishUnrestrictedLimitsAbortsIf<XUS>{publish_account: dr_account};
         include Diem::RegisterSCSCurrencyEnsures<XUS>;

@@ -167,6 +167,7 @@ module DiemFramework::AccountLimits {
     }
     spec publish_window {
         include PublishWindowAbortsIf<CoinType>;
+        include PublishWindowEnsures<CoinType>;
     }
     spec schema PublishWindowAbortsIf<CoinType> {
         dr_account: signer;
@@ -180,6 +181,12 @@ module DiemFramework::AccountLimits {
         aborts_if exists<Window<CoinType>>(Signer::address_of(to_limit)) with Errors::ALREADY_PUBLISHED;
     }
 
+    spec schema PublishWindowEnsures<CoinType> {
+        to_limit: signer;
+        ensures global<Window<CoinType>>(Signer::address_of(to_limit)).window_inflow == 0;
+        ensures global<Window<CoinType>>(Signer::address_of(to_limit)).window_outflow == 0;
+        ensures global<Window<CoinType>>(Signer::address_of(to_limit)).tracked_balance == 0;
+    }
     /// Unrestricted limits are represented by setting all fields in the
     /// limits definition to `MAX_U64`. Anyone can publish an unrestricted
     /// limits since no windows will point to this limits definition unless the
@@ -561,6 +568,9 @@ module DiemFramework::AccountLimits {
         if (DiemTimestamp::is_genesis()) 0 else DiemTimestamp::now_microseconds()
     }
 
+    spec current_time(): u64 {
+        ensures DiemTimestamp::is_genesis() ==> result == 0;
+    }
     // =================================================================
     // Module Specification
 

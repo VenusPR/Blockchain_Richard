@@ -2574,6 +2574,19 @@ Creating an account at address 0x0 will abort as it is a reserved address for th
 <b>ensures</b> <a href="DiemAccount.md#0x1_DiemAccount_spec_holds_own_key_rotation_cap">spec_holds_own_key_rotation_cap</a>(new_account_addr);
 <b>ensures</b> <a href="DiemAccount.md#0x1_DiemAccount_spec_holds_own_withdraw_cap">spec_holds_own_withdraw_cap</a>(new_account_addr);
 <b>include</b> <a href="DiemAccount.md#0x1_DiemAccount_MakeAccountEmits">MakeAccountEmits</a>{new_account_address: <a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(new_account)};
+<b>include</b> <a href="DiemAccount.md#0x1_DiemAccount_MakeAccountEnsures">MakeAccountEnsures</a>{addr: new_account_addr};
+</code></pre>
+
+
+
+
+<a name="0x1_DiemAccount_MakeAccountEnsures"></a>
+
+
+<pre><code><b>schema</b> <a href="DiemAccount.md#0x1_DiemAccount_MakeAccountEnsures">MakeAccountEnsures</a> {
+    addr: <b>address</b>;
+    <b>ensures</b> <b>global</b>&lt;<a href="DiemAccount.md#0x1_DiemAccount">DiemAccount</a>&gt;(addr).sequence_number == 0;
+}
 </code></pre>
 
 

@@ -268,6 +268,8 @@ module DiemFramework::SlidingNonce {
         modifies global<SlidingNonce>(Signer::address_of(account));
         aborts_if exists<SlidingNonce>(Signer::address_of(account)) with Errors::ALREADY_PUBLISHED;
         ensures exists<SlidingNonce>(Signer::address_of(account));
+        ensures global<SlidingNonce>(Signer::address_of(account)).min_nonce == 0;
+        ensures global<SlidingNonce>(Signer::address_of(account)).nonce_mask == 0;
     }
 
     // =================================================================

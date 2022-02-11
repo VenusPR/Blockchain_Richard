@@ -99,7 +99,7 @@ Registers the <code><a href="XUS.md#0x1_XUS">XUS</a></code> cointype. This can o
 
 <pre><code><b>include</b> <a href="Diem.md#0x1_Diem_RegisterSCSCurrencyAbortsIf">Diem::RegisterSCSCurrencyAbortsIf</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;{
     currency_code: b"<a href="XUS.md#0x1_XUS">XUS</a>",
-    scaling_factor: 1000000
+    scaling_factor: 1000000,
 };
 <b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishUnrestrictedLimitsAbortsIf">AccountLimits::PublishUnrestrictedLimitsAbortsIf</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;{publish_account: dr_account};
 <b>include</b> <a href="Diem.md#0x1_Diem_RegisterSCSCurrencyEnsures">Diem::RegisterSCSCurrencyEnsures</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;;

@@ -193,6 +193,10 @@ module DiemFramework::CRSN {
         shift_window_right(crsn);
     }
 
+    spec force_expire {
+        let addr = Signer::address_of(account);
+        ensures global<CRSN>(addr).min_nonce == old(global<CRSN>(addr)).min_nonce + shift_amount;
+    }
     /// Return whether this address has a CRSN resource published under it.
     public fun has_crsn(addr: address): bool {
         exists<CRSN>(addr)

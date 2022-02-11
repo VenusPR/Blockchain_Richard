@@ -1006,6 +1006,7 @@ reconfiguration event.
 <b>let</b> <b>post</b> msg = <a href="DiemConfig.md#0x1_DiemConfig_NewEpochEvent">NewEpochEvent</a> {
         epoch: config.epoch,
 };
+<b>ensures</b> config.epoch == 1;
 <b>emits</b> msg <b>to</b> handle;
 </code></pre>
 

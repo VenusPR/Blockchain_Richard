@@ -3069,6 +3069,7 @@ Must abort if the signer does not have the DiemRoot role [[H8]][PERMISSION].
 <pre><code><b>schema</b> <a href="Diem.md#0x1_Diem_RegisterCurrencyEnsures">RegisterCurrencyEnsures</a>&lt;CoinType&gt; {
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_is_currency">spec_is_currency</a>&lt;CoinType&gt;();
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_currency_info">spec_currency_info</a>&lt;CoinType&gt;().total_value == 0;
+    <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_currency_info">spec_currency_info</a>&lt;CoinType&gt;().preburn_value == 0;
 }
 </code></pre>
 

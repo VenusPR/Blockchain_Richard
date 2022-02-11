@@ -1128,6 +1128,12 @@ module DiemFramework::DiemAccount {
         ensures spec_holds_own_key_rotation_cap(new_account_addr);
         ensures spec_holds_own_withdraw_cap(new_account_addr);
         include MakeAccountEmits{new_account_address: Signer::address_of(new_account)};
+        include MakeAccountEnsures{addr: new_account_addr};
+
+    }
+    spec schema MakeAccountEnsures {
+        addr: address;
+        ensures global<DiemAccount>(addr).sequence_number == 0;
     }
     spec schema MakeAccountAbortsIf {
         addr: address;

@@ -48,6 +48,7 @@ module DiemFramework::DiemTimestamp {
         include AbortsIfNotGenesis;
         include CoreAddresses::AbortsIfNotDiemRoot{account: dr_account};
         ensures is_operating();
+        ensures spec_now_microseconds() == 0;
     }
 
     // TODO: this is for both df-cli and the unit-test for df

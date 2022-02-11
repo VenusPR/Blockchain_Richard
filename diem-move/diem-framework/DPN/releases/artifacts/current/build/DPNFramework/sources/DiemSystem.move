@@ -127,6 +127,7 @@ module DiemFramework::DiemSystem {
         ensures exists<CapabilityHolder>(dr_addr);
         ensures DiemConfig::spec_is_published<DiemSystem>();
         ensures len(spec_get_validators()) == 0;
+        ensures DiemConfig::get<DiemSystem>().scheme == 0;
     }
 
     /// Copies a DiemSystem struct into the DiemConfig<DiemSystem> resource

@@ -511,6 +511,19 @@ then shifted over set bits as define by the <code>shift_window_right</code> func
 
 </details>
 
+<details>
+<summary>Specification</summary>
+
+
+
+<pre><code><b>let</b> addr = <a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(account);
+<b>ensures</b> <b>global</b>&lt;<a href="CRSN.md#0x1_CRSN">CRSN</a>&gt;(addr).min_nonce == <b>old</b>(<b>global</b>&lt;<a href="CRSN.md#0x1_CRSN">CRSN</a>&gt;(addr)).min_nonce + shift_amount;
+</code></pre>
+
+
+
+</details>
+
 <a name="0x1_CRSN_has_crsn"></a>
 
 ## Function `has_crsn`
