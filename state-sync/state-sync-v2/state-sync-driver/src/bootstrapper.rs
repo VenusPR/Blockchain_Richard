@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    driver::DriverConfiguration, error::Error, storage_synchronizer::StorageSynchronizerInterface,
-    utils, utils::SpeculativeStreamState,
+    driver::DriverConfiguration, error::Error, notification_handlers::CommittedAccounts,
+    storage_synchronizer::StorageSynchronizerInterface, utils, utils::SpeculativeStreamState,
 };
 use data_streaming_service::{
     data_notification::{DataNotification, DataPayload, NotificationId},
@@ -817,6 +817,16 @@ impl<StorageSyncer: StorageSynchronizerInterface + Clone> Bootstrapper<StorageSy
             notification_feedback,
         )
         .await
+    }
+
+    /// Handles a notification from the driver that new accounts have been
+    /// committed to storage.
+    pub fn handle_committed_accounts(
+        &mut self,
+        _committed_accounts: CommittedAccounts,
+    ) -> Result<(), Error> {
+        // TODO(joshlind): implement me!
+        unimplemented!();
     }
 
     /// Returns the speculative stream state. Assumes that the state exists.
