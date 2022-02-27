@@ -78,7 +78,12 @@ module DiemFramework::XDX {
         };
         include AccountLimits::PublishUnrestrictedLimitsAbortsIf<XDX>{publish_account: dr_account};
 
-        include Diem::RegisterCurrencyEnsures<XDX>;
+        include Diem::RegisterCurrencyEnsures<XDX>{
+            to_xdx_exchange_rate: FixedPoint32::spec_create_from_rational(1, 1),
+            is_synthetic: true,
+            fractional_part: 1000
+        };
+
         include Diem::UpdateMintingAbilityEnsures<XDX>{can_mint: false};
         include AccountLimits::PublishUnrestrictedLimitsEnsures<XDX>{publish_account: dr_account};
         ensures exists<Reserve>(@DiemRoot);

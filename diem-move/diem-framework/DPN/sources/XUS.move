@@ -34,7 +34,10 @@ module DiemFramework::XUS {
             scaling_factor: 1000000,
         };
         include AccountLimits::PublishUnrestrictedLimitsAbortsIf<XUS>{publish_account: dr_account};
-        include Diem::RegisterSCSCurrencyEnsures<XUS>;
+        include Diem::RegisterSCSCurrencyEnsures<XUS>{
+            to_xdx_exchange_rate: FixedPoint32::spec_create_from_rational(1, 1),
+            fractional_part: 100
+        };
         include AccountLimits::PublishUnrestrictedLimitsEnsures<XUS>{publish_account: dr_account};
         /// Registering XUS can only be done in genesis.
         include DiemTimestamp::AbortsIfNotGenesis;

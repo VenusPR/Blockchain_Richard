@@ -3067,9 +3067,14 @@ Must abort if the signer does not have the DiemRoot role [[H8]][PERMISSION].
 
 
 <pre><code><b>schema</b> <a href="Diem.md#0x1_Diem_RegisterCurrencyEnsures">RegisterCurrencyEnsures</a>&lt;CoinType&gt; {
+    is_synthetic: bool;
+    to_xdx_exchange_rate: <a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/FixedPoint32.md#0x1_FixedPoint32">FixedPoint32</a>;
+    fractional_part: u64;
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_is_currency">spec_is_currency</a>&lt;CoinType&gt;();
+    <b>ensures</b> <a href="Diem.md#0x1_Diem_is_synthetic_currency">is_synthetic_currency</a>&lt;CoinType&gt;() == is_synthetic;
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_currency_info">spec_currency_info</a>&lt;CoinType&gt;().total_value == 0;
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_currency_info">spec_currency_info</a>&lt;CoinType&gt;().preburn_value == 0;
+    <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_currency_info">spec_currency_info</a>&lt;CoinType&gt;().fractional_part == fractional_part;
 }
 </code></pre>
 
@@ -3175,7 +3180,10 @@ Only a TreasuryCompliance account can have the BurnCapability [[H3]][PERMISSION]
 
 <pre><code><b>schema</b> <a href="Diem.md#0x1_Diem_RegisterSCSCurrencyEnsures">RegisterSCSCurrencyEnsures</a>&lt;CoinType&gt; {
     tc_account: signer;
+    to_xdx_exchange_rate: <a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/FixedPoint32.md#0x1_FixedPoint32">FixedPoint32</a>;
+    fractional_part: u64;
     <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_has_mint_capability">spec_has_mint_capability</a>&lt;CoinType&gt;(<a href="../../../../../../../DPN/releases/artifacts/current/build/MoveStdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(tc_account));
+    <b>ensures</b> <a href="Diem.md#0x1_Diem_spec_xdx_exchange_rate">spec_xdx_exchange_rate</a>&lt;CoinType&gt;() == to_xdx_exchange_rate;
 }
 </code></pre>
 

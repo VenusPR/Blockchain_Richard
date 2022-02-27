@@ -102,7 +102,10 @@ Registers the <code><a href="XUS.md#0x1_XUS">XUS</a></code> cointype. This can o
     scaling_factor: 1000000,
 };
 <b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishUnrestrictedLimitsAbortsIf">AccountLimits::PublishUnrestrictedLimitsAbortsIf</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;{publish_account: dr_account};
-<b>include</b> <a href="Diem.md#0x1_Diem_RegisterSCSCurrencyEnsures">Diem::RegisterSCSCurrencyEnsures</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;;
+<b>include</b> <a href="Diem.md#0x1_Diem_RegisterSCSCurrencyEnsures">Diem::RegisterSCSCurrencyEnsures</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;{
+    to_xdx_exchange_rate: FixedPoint32::spec_create_from_rational(1, 1),
+    fractional_part: 100
+};
 <b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishUnrestrictedLimitsEnsures">AccountLimits::PublishUnrestrictedLimitsEnsures</a>&lt;<a href="XUS.md#0x1_XUS">XUS</a>&gt;{publish_account: dr_account};
 </code></pre>
 

@@ -184,7 +184,11 @@ restrictions are enforced in the <code><a href="Diem.md#0x1_Diem_register_curren
     scaling_factor: 1000000
 };
 <b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishUnrestrictedLimitsAbortsIf">AccountLimits::PublishUnrestrictedLimitsAbortsIf</a>&lt;<a href="XDX.md#0x1_XDX">XDX</a>&gt;{publish_account: dr_account};
-<b>include</b> <a href="Diem.md#0x1_Diem_RegisterCurrencyEnsures">Diem::RegisterCurrencyEnsures</a>&lt;<a href="XDX.md#0x1_XDX">XDX</a>&gt;;
+<b>include</b> <a href="Diem.md#0x1_Diem_RegisterCurrencyEnsures">Diem::RegisterCurrencyEnsures</a>&lt;<a href="XDX.md#0x1_XDX">XDX</a>&gt;{
+    to_xdx_exchange_rate: FixedPoint32::spec_create_from_rational(1, 1),
+    is_synthetic: <b>true</b>,
+    fractional_part: 1000
+};
 <b>include</b> <a href="Diem.md#0x1_Diem_UpdateMintingAbilityEnsures">Diem::UpdateMintingAbilityEnsures</a>&lt;<a href="XDX.md#0x1_XDX">XDX</a>&gt;{can_mint: <b>false</b>};
 <b>include</b> <a href="AccountLimits.md#0x1_AccountLimits_PublishUnrestrictedLimitsEnsures">AccountLimits::PublishUnrestrictedLimitsEnsures</a>&lt;<a href="XDX.md#0x1_XDX">XDX</a>&gt;{publish_account: dr_account};
 <b>ensures</b> <b>exists</b>&lt;<a href="XDX.md#0x1_XDX_Reserve">Reserve</a>&gt;(@DiemRoot);

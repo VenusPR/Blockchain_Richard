@@ -1309,9 +1309,14 @@ module DiemFramework::Diem {
     }
 
     spec schema RegisterCurrencyEnsures<CoinType> {
+        is_synthetic: bool;
+        to_xdx_exchange_rate: FixedPoint32;
+        fractional_part: u64;
         ensures spec_is_currency<CoinType>();
+        ensures is_synthetic_currency<CoinType>() == is_synthetic;
         ensures spec_currency_info<CoinType>().total_value == 0;
         ensures spec_currency_info<CoinType>().preburn_value == 0;
+        ensures spec_currency_info<CoinType>().fractional_part == fractional_part;
     }
 
     /// Registers a stable currency (SCS) coin -- i.e., a non-synthetic currency.
@@ -1368,7 +1373,10 @@ module DiemFramework::Diem {
     }
     spec schema RegisterSCSCurrencyEnsures<CoinType> {
         tc_account: signer;
+        to_xdx_exchange_rate: FixedPoint32;
+        fractional_part: u64;
         ensures spec_has_mint_capability<CoinType>(Signer::address_of(tc_account));
+        ensures spec_xdx_exchange_rate<CoinType>() == to_xdx_exchange_rate;
     }
 
     /// Returns the total amount of currency minted of type `CoinType`.
