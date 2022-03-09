@@ -172,7 +172,7 @@ jobs:
     needs: prepare
     if: ${{ github.event_name == 'push' && needs.prepare.outputs.build-images == 'true' }}
     outputs:
-      head-tag: ${{ steps.push-to-novi-ecr.outputs.head-tag }}
+      head-tag: ${{ steps.push-to-acp-ecr.outputs.head-tag }}
     environment:
       name: Docker
     strategy:
@@ -190,13 +190,13 @@ jobs:
           workflow-file: docker-publish.yml
       - name: setup_aws_ecr_login
         run: |
-          echo 'AWS_ECR_ACCOUNT_URL=${{ secrets.ENV_NOVI_ECR_AWS_ACCOUNT_NUM }}.dkr.ecr.${{ secrets.ENV_NOVI_ECR_AWS_REGION }}.amazonaws.com' >> $GITHUB_ENV
+          echo 'AWS_ECR_ACCOUNT_URL=${{ secrets.ENV_ACP_ECR_AWS_ACCOUNT_NUM }}.dkr.ecr.${{ secrets.ENV_ACP_ECR_AWS_REGION }}.amazonaws.com' >> $GITHUB_ENV
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.ENV_NOVI_ECR_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.ENV_NOVI_ECR_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.ENV_NOVI_ECR_AWS_REGION }}
+          aws-access-key-id: ${{ secrets.ENV_ACP_ECR_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ENV_ACP_ECR_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.ENV_ACP_ECR_AWS_REGION }}
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1.3.3
@@ -225,14 +225,14 @@ jobs:
           exit $success
         env:
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.ENV_DOCKERHUB_KEY_PASSWORD }}
-      - name: push to novi ecr
-        id: push-to-novi-ecr
+      - name: push to ACP ecr
+        id: push-to-acp-ecr
         run: |
-          #push to novi ecr with standard names
+          #push to ACP ecr with standard names
           BRANCH="$CHANGES_TARGET_BRANCH"
           GIT_REV=$(git rev-parse --short=8 HEAD)
           echo "::set-output name=head-tag::land_$GIT_REV";
-          aws ecr get-login-password --region ${{ secrets.ENV_NOVI_ECR_AWS_REGION }} | \
+          aws ecr get-login-password --region ${{ secrets.ENV_ACP_ECR_AWS_REGION }} | \
           docker login --username AWS --password-stdin "${AWS_ECR_ACCOUNT_URL}"
           docker/docker_republish.sh -t pre_${BRANCH}_${GIT_REV} -o land_${GIT_REV} -r ${AWS_ECR_ACCOUNT_URL} -d -i "${{ matrix.target_images }}"
       - name: Early terminate workflow
@@ -242,7 +242,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   need-base-images:
-    runs-on: self-hosted
+    runs-on: [self-hosted, ACP]
     needs: prepare
     if: ${{ github.event_name == 'push' && needs.prepare.outputs.build-images == 'true' && needs.prepare.outputs.need-base-images == 'true' }}
     outputs:
@@ -852,7 +852,7 @@ jobs:
 
   land-blocking-test-forge:
     name: Run land blocking test in Forge
-    runs-on: self-hosted
+    runs-on: [self-hosted, ACP]
     needs: [prepare, build-images, need-base-images]
     if: ${{ always() && needs.build-images.result=='success' && needs.prepare.outputs.test-land-blocking == 'true' }}
     outputs:

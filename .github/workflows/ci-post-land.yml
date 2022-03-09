@@ -153,7 +153,7 @@ jobs:
   run-forge-test-pre-release-suite:
     needs: prepare
     name: Run the pre-release suite of Forge Test
-    runs-on: self-hosted
+    runs-on: [self-hosted, ACP]
     if: ${{  startsWith(needs.prepare.outputs.changes-target-branch, 'release') }}
     # The pre-release suite run time varies 1~1.5 hr.
     timeout-minutes: 120
@@ -173,7 +173,7 @@ jobs:
         # Poll until images are ready
         env:
           AWS_REGION: us-west-2
-          RETRIES: 30
+          RETRIES: 75
         run: |
           set +e
           retry=0
@@ -238,13 +238,13 @@ jobs:
           fetch-depth: 0 #get all the history!!!
       - name: setup_aws_ecr_login
         run: |
-          echo 'AWS_ECR_ACCOUNT_URL=${{ secrets.ENV_NOVI_ECR_AWS_ACCOUNT_NUM }}.dkr.ecr.${{ secrets.ENV_NOVI_ECR_AWS_REGION }}.amazonaws.com' >> $GITHUB_ENV
+          echo 'AWS_ECR_ACCOUNT_URL=${{ secrets.ENV_ACP_ECR_AWS_ACCOUNT_NUM }}.dkr.ecr.${{ secrets.ENV_ACP_ECR_AWS_REGION }}.amazonaws.com' >> $GITHUB_ENV
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.ENV_NOVI_ECR_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.ENV_NOVI_ECR_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.ENV_NOVI_ECR_AWS_REGION }}
+          aws-access-key-id: ${{ secrets.ENV_ACP_ECR_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ENV_ACP_ECR_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.ENV_ACP_ECR_AWS_REGION }}
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1.3.3
@@ -269,7 +269,6 @@ jobs:
           success=0
           tmpfile=$(mktemp)
           echo "Failed to push:" > "${tmpfile}"
-          docker/build_push.sh -u -p -b ${BRANCH} -n client || success=$(echo "client" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -p -b ${BRANCH} -n init || success=$(echo "init" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -p -b ${BRANCH} -n faucet || success=$(echo "faucet" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -p -b ${BRANCH} -n tools || success=$(echo "tools" >> "${tmpfile}"; echo 1)
@@ -290,7 +289,6 @@ jobs:
           success=0
           tmpfile=$(mktemp)
           echo "Failed to push:" >> "${tmpfile}"
-          docker/build_push.sh -u -b ${BRANCH} -n client || success=$(echo "client" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -b ${BRANCH} -n init ||  success=$(echo "init" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -b ${BRANCH} -n faucet ||  success=$(echo "faucet" >> "${tmpfile}"; echo 1)
           docker/build_push.sh -u -b ${BRANCH} -n tools ||  success=$(echo "tools" >> "${tmpfile}"; echo 1)
@@ -303,13 +301,13 @@ jobs:
           exit $success
         env:
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.ENV_DOCKERHUB_KEY_PASSWORD }}
-      - name: push to novi ecr
+      - name: push to acp ecr
         if: ${{ always() && github.ref != 'refs/heads/auto' }}
         run: |
-          #push to novi ecr with standard names
+          #push to acp ecr with standard names
           BRANCH=$(echo "$GITHUB_REF" | sed 's|.*/||' )
           GIT_REV=$(git rev-parse --short=8 HEAD)
-          aws ecr get-login-password --region ${{ secrets.ENV_NOVI_ECR_AWS_REGION }} | \
+          aws ecr get-login-password --region ${{ secrets.ENV_ACP_ECR_AWS_REGION }} | \
           docker login --username AWS --password-stdin "${AWS_ECR_ACCOUNT_URL}"
           docker/docker_republish.sh -t ${BRANCH}_${GIT_REV} -r ${AWS_ECR_ACCOUNT_URL} -d
 
