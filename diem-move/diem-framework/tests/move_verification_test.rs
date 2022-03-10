@@ -10,3 +10,18 @@ fn prove_all() {
     ProverTest::create("experimental").run();
     ProverTest::create("DPN").run()
 }
+
+#[test]
+#[ignore]
+fn prove_checking_inconsistency() {
+    ProverTest::create("DPN")
+        .with_options(&["--check-inconsistency"])
+        .run()
+}
+
+#[test]
+#[ignore]
+fn prove_using_cvc5() {
+    // TODO: This test is disabled because it hangs (> 10 mins in a local test).
+    //ProverTest::create("DPN").with_options(&["--use-cvc5"]).run()
+}
