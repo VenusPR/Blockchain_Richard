@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ######################################################################################################################
-# Takes a slug org/repo ( diem/client ) and deletes all tags with release-* over 90 days and all other              #
-# over 2 days (assumed to be test images).                                                                           #
+# Takes a slug org/repo ( diem/client ) and deletes all tags with release-* over 180 days and all other              #
+# over 7 days (assumed to be test images).                                                                           #
 ######################################################################################################################
 
 user=
@@ -111,6 +111,8 @@ function prune_repo {
 
     TO_DELETE=
     PAGE=0
+    # Variable to enable release version deletion
+    Release_Deletion=false
     while [[ $(echo "$RELEASES" | wc -l) -gt 1 ]]; do
       PAGE=$(( PAGE + 1))
       while IFS= read -r line; do
@@ -119,7 +121,7 @@ function prune_repo {
           DAYS_SINCE_0=$(( TIME / 86400));
           AGE_DAYS=$(( NOW_DAYS - DAYS_SINCE_0 ));
 
-          if [[ $TAG == "release-"* ]] && [[ $AGE_DAYS -gt 180 ]]; then
+          if [[ $TAG == "release-"* ]] && [[ $AGE_DAYS -gt 180 ]] && "$Release_Deletion"; then
               echo "$REPO:$TAG is a release. It's age is $AGE_DAYS -- will delete"
               TO_DELETE="${TO_DELETE}"'
               '"${TAG}"
