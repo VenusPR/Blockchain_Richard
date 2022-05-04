@@ -6,16 +6,12 @@
 
 [![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE.md)
 
-Explore the technical and economic concepts behind the Diem Payment Network.
+Explore the technical and economic concepts behind the Diem Payment Networks.
 
 ## Note to developers
 * Diem Core is a prototype.
 * The APIs are constantly evolving and designed to demonstrate types of functionality. Expect substantial changes before the release.
 * We've launched a testnet that is a live demonstration of an early prototype of the Diem Blockchain software.
-
-## Contributing
-
-Read our [Contributing guide](https://developers.diem.com/docs/community/contributing). Read the latest updates on our [blog](https://www.diem.com/en-us/media-press-news/).
 
 ## Getting started
 
@@ -32,12 +28,6 @@ Read our [Contributing guide](https://developers.diem.com/docs/community/contrib
 * [The Diem Blockchain](https://developers.diem.com/docs/technical-papers/the-diem-blockchain-paper)
 * [Move: A Language With Programmable Resources](https://developers.diem.com/docs/technical-papers/move-paper)
 * [State Machine Replication in the Diem Blockchain](https://developers.diem.com/docs/technical-papers/state-machine-replication-paper)
-
-## Community
-
-Join us on the [Diem Discourse](https://community.diem.com).
-
-Get the latest updates to our project by signing up to our [newsletter](https://developers.diem.com/newsletter_form).
 
 ## License
 
