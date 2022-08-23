@@ -15,7 +15,7 @@ hex = "0.4.3"
 serde = { version = "1.0.124", features = ["rc"], default-features = false }
 serde_yaml = "0.8.17"
 structopt = "0.3.21"
-thiserror = "1.0.24"
+thiserror = "1.0.37"
 toml = { version = "0.5.8", default-features = false }
 
 bcs = "0.1.2"

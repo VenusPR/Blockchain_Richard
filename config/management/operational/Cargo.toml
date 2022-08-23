@@ -20,7 +20,7 @@ serde = { version = "1.0.124", features = ["rc"], default-features = false }
 serde_json = "1.0.64"
 serde_yaml = "0.8.17"
 structopt = "0.3.21"
-thiserror = "1.0.24"
+thiserror = "1.0.37"
 tokio = { version = "1.18.2", features = ["full"] }
 tokio-util = { version = "0.7.2", features = ["compat"] }
 toml = { version = "0.5.8", default-features = false }

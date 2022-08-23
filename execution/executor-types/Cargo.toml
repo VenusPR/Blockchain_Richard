@@ -12,14 +12,14 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.38"
 serde = { version = "1.0.124", default-features = false }
-thiserror = "1.0.24"
+thiserror = "1.0.37"
 
 bcs = "0.1.2"
 diem-crypto = { path = "../../crypto/crypto" }
 diem-secure-net = { path = "../../secure/net" }
 diem-types = { path = "../../types" }
 diem-workspace-hack = { path = "../../common/workspace-hack" }
-scratchpad = { path = "../../storage/scratchpad" }
+diem-scratchpad = { path = "../../storage/diem-scratchpad" }
 storage-interface = { path = "../../storage/storage-interface" }
 
 [features]

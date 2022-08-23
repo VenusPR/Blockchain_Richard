@@ -14,7 +14,7 @@ anyhow = "1.0.38"
 rand = "0.8.3"
 serde = { version = "1.0.124", features = ["rc"], default-features = false }
 structopt = "0.3.21"
-thiserror = "1.0.24"
+thiserror = "1.0.37"
 toml = { version = "0.5.8", default-features = false }
 
 consensus-types = { path = "../../../consensus/consensus-types" }
