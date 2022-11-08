@@ -26,6 +26,7 @@ Diem Core implements a decentralized, programmable database which provides a fin
 * [JSON-RPC SPEC](json-rpc/json-rpc-spec.md)
 
 ### Try Diem Core
+* [Building and Testing the Repository](./CONTRIBUTING.md)
 * [My First Transaction](https://developers.diem.com/docs/core/my-first-transaction)
 * [Getting Started With Move](https://developers.diem.com/docs/move/move-introduction)
 
