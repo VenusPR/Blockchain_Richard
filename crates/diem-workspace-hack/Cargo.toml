@@ -14,6 +14,7 @@ edition = "2018"
 [target.x86_64-unknown-linux-gnu.dependencies]
 Inflector = { version = "0.11.4", features = ["default", "heavyweight", "lazy_static", "regex"] }
 anyhow = { version = "1.0.40", features = ["backtrace", "default", "std"] }
+arrayvec = { version = "0.5.2", features = ["default", "std"] }
 backtrace = { version = "0.3.56", features = ["addr2line", "default", "gimli-symbolize", "miniz_oxide", "object", "serde", "std"] }
 block-buffer = { version = "0.9.0", default-features = false, features = ["block-padding"] }
 bstr = { version = "0.2.15", features = ["default", "lazy_static", "regex-automata", "serde", "serde1", "serde1-nostd", "std", "unicode"] }
@@ -67,6 +68,7 @@ zeroize = { version = "1.3.0", features = ["alloc", "default", "zeroize_derive"]
 [target.x86_64-unknown-linux-gnu.build-dependencies]
 Inflector = { version = "0.11.4", features = ["default", "heavyweight", "lazy_static", "regex"] }
 anyhow = { version = "1.0.40", features = ["backtrace", "default", "std"] }
+arrayvec = { version = "0.5.2", features = ["default", "std"] }
 backtrace = { version = "0.3.56", features = ["addr2line", "default", "gimli-symbolize", "miniz_oxide", "object", "serde", "std"] }
 block-buffer = { version = "0.9.0", default-features = false, features = ["block-padding"] }
 bstr = { version = "0.2.15", features = ["default", "lazy_static", "regex-automata", "serde", "serde1", "serde1-nostd", "std", "unicode"] }
@@ -125,6 +127,7 @@ zeroize = { version = "1.3.0", features = ["alloc", "default", "zeroize_derive"]
 [target.x86_64-apple-darwin.dependencies]
 Inflector = { version = "0.11.4", features = ["default", "heavyweight", "lazy_static", "regex"] }
 anyhow = { version = "1.0.40", features = ["backtrace", "default", "std"] }
+arrayvec = { version = "0.5.2", features = ["default", "std"] }
 backtrace = { version = "0.3.56", features = ["addr2line", "default", "gimli-symbolize", "miniz_oxide", "object", "serde", "std"] }
 block-buffer = { version = "0.9.0", default-features = false, features = ["block-padding"] }
 bstr = { version = "0.2.15", features = ["default", "lazy_static", "regex-automata", "serde", "serde1", "serde1-nostd", "std", "unicode"] }
@@ -178,6 +181,7 @@ zeroize = { version = "1.3.0", features = ["alloc", "default", "zeroize_derive"]
 [target.x86_64-apple-darwin.build-dependencies]
 Inflector = { version = "0.11.4", features = ["default", "heavyweight", "lazy_static", "regex"] }
 anyhow = { version = "1.0.40", features = ["backtrace", "default", "std"] }
+arrayvec = { version = "0.5.2", features = ["default", "std"] }
 backtrace = { version = "0.3.56", features = ["addr2line", "default", "gimli-symbolize", "miniz_oxide", "object", "serde", "std"] }
 block-buffer = { version = "0.9.0", default-features = false, features = ["block-padding"] }
 bstr = { version = "0.2.15", features = ["default", "lazy_static", "regex-automata", "serde", "serde1", "serde1-nostd", "std", "unicode"] }
