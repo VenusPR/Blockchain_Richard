@@ -146,7 +146,7 @@ jobs:
         if: ${{ github.ref != 'refs/heads/auto' }}
         run: |
           set -x
-          BRANCH=$(echo "release-1.4.3" )
+          BRANCH=$(echo "testnet" )
           success=0
           tmpfile=$(mktemp)
           echo "Failed to push:" >> "${tmpfile}"
