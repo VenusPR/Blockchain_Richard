@@ -180,7 +180,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   build-images:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ github.event_name == 'push' && needs.prepare.outputs.build-images == 'true' }}
@@ -254,7 +254,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   need-base-images:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-4core
     timeout-minutes: 65
     needs: prepare
     if: ${{ github.event_name == 'push' && needs.prepare.outputs.build-images == 'true' && needs.prepare.outputs.need-base-images == 'true' }}
@@ -417,7 +417,7 @@ jobs:
             }
 
   non-rust-lint:
-    runs-on: [self-hosted, testnet-runner]
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-non-rust-lint == 'true'  }}
@@ -479,7 +479,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   unit-test:
-    runs-on: [self-hosted, testnet-runner-r5]
+    runs-on: ubuntu-20.04-16core
     timeout-minutes: 120
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
@@ -522,7 +522,7 @@ jobs:
       - uses: ./.github/actions/build-teardown
 
   codegen-unit-test:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
@@ -553,7 +553,7 @@ jobs:
       - uses: ./.github/actions/build-teardown
 
   e2e-test:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 70
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
@@ -663,7 +663,7 @@ jobs:
           cargo test -p testcases --test forge-local-compatibility
 
   docker-compose-test:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-docker-compose == 'true' }}
@@ -699,7 +699,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   crypto-unit-test:
-    runs-on: [self-hosted, testnet-runner]
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
@@ -762,7 +762,7 @@ jobs:
   #         github-token: ${{secrets.GITHUB_TOKEN}}
 
   helm-test:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-4core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-helm == 'true' }}
@@ -838,7 +838,7 @@ jobs:
 
   api_spec_test:
     name: API specification test
-    runs-on: [self-hosted, testnet-runner]
+    runs-on: ubuntu-20.04-4core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-api-spec == 'true' }}
@@ -856,7 +856,7 @@ jobs:
 
   # Compile (but don't run) the benchmarks, to insulate against bit rot
   build-benchmarks:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 30
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
@@ -885,7 +885,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
 
   build-dev:
-    runs-on: [self-hosted, testnet-runner]
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-rust == 'true' }}
