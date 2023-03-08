@@ -86,7 +86,7 @@ jobs:
     needs: prepare
     environment:
       name: Sccache
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-latest-4core
     container:
       image: diem/build_environment:${{ needs.prepare.outputs.changes-target-branch }}
       volumes:
@@ -153,7 +153,7 @@ jobs:
 
   build_ci_base_docker_image:
     needs: prepare
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-latest-4core
     if: ${{ needs.prepare.outputs.base-image-changes == 'true' || github.event_name == 'create' }}
     continue-on-error: false
     env:
@@ -253,7 +253,7 @@ jobs:
 
   build-release-images:
     needs: prepare
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-4core
     continue-on-error: false
     env:
       TAG: github-1
