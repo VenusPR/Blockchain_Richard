@@ -159,7 +159,7 @@ jobs:
           pattern: '^api\|^scripts/dev_setup.sh'
 
   dev-setup-sh-test:
-    runs-on: ubuntu-20.04-xl
+    runs-on: ubuntu-20.04-8core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.test-dev-setup == 'true' }}
@@ -729,7 +729,7 @@ jobs:
 
   # Disabling temporarily since code coverage is currently broken with the latest rust release
   # coverage-unit-test:
-  #   runs-on: ubuntu-20.04-xl
+  #   runs-on: ubuntu-20.04-8core
   #   timeout-minutes: 30
   #   needs: prepare
   #   if: ${{ needs.prepare.outputs.test-test-coverage == 'true' }}
