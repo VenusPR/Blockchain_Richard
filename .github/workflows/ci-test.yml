@@ -446,7 +446,7 @@ jobs:
       #   with:
       #     github-token: ${{secrets.GITHUB_TOKEN}}
   lint:
-    runs-on: [self-hosted, testnet-runner]
+    runs-on: ubuntu-20.04-4core
     timeout-minutes: 65
     needs: prepare
     if: ${{ needs.prepare.outputs.any-changes-founds == 'true' }}
