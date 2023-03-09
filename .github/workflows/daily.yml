@@ -70,7 +70,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
       - uses: ./.github/actions/build-setup
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.ENV_DIEM_S3_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.ENV_DIEM_S3_AWS_SECRET_ACCESS_KEY }}
